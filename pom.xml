@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <serenity.version>3.9.8</serenity.version>
         <serenity.maven.version>3.9.8</serenity.maven.version>
-        <selenium.version>4.14.0</selenium.version>
+        <selenium.version>4.21.0</selenium.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
