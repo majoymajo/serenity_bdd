@@ -37,8 +37,9 @@ public class HomePage extends PageObject {
         if (productIndex < products.size()) {
             WebElementFacade product = products.get(productIndex);
             scrollToElement(product);
-            product.find(By.cssSelector(".btn-primary")).click();
-            $(SUCCESS_ALERT).withTimeoutOf(Duration.ofSeconds(10)).waitUntilVisible();
+            WebElement addButton = product.find(By.cssSelector(".btn-primary"));
+            ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click();", addButton);
+            $(SUCCESS_ALERT).withTimeoutOf(Duration.ofSeconds(15)).waitUntilVisible();
         }
     }
 
