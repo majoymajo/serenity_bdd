@@ -27,26 +27,28 @@ public class CheckoutPage extends PageObject {
     private By guestCheckoutRadio = By.cssSelector("input[name='account'][value='guest']");
     private By continueGuestButton = By.id("button-account");
 
-    // Locators - Datos de Envío
-    private By firstNameField = By.id("input-firstname");
-    private By lastNameField = By.id("input-lastname");
-    private By emailField = By.id("input-email");
-    private By telephoneField = By.id("input-telephone");
-    private By addressField = By.id("input-shipping-address-1");
-    private By cityField = By.id("input-shipping-city");
-    private By postcodeField = By.id("input-shipping-postcode");
-    private By countrySelect = By.id("input-shipping-country");
-    private By stateSelect = By.id("input-shipping-zone");
-    private By continueShippingButton = By.id("button-shipping-address");
+    // Locators - Datos (Guest) Billing Details
+    private By billingDetailsPanelLink = By.cssSelector("a[href='#collapse-payment-address']");
+    private By firstNameField = By.id("input-payment-firstname");
+    private By lastNameField = By.id("input-payment-lastname");
+    private By emailField = By.id("input-payment-email");
+    private By telephoneField = By.id("input-payment-telephone");
+    private By addressField = By.id("input-payment-address-1");
+    private By cityField = By.id("input-payment-city");
+    private By postcodeField = By.id("input-payment-postcode");
+    private By countrySelect = By.id("input-payment-country");
+    private By stateSelect = By.id("input-payment-zone");
+    private By continueBillingButton = By.id("button-guest");
 
-    // Locators - Método de Envío
-    private By shippingMethodRadio = By.cssSelector("input[name='shipping_method']");
-    private By continueShippingMethodButton = By.id("button-shipping-method");
-
-    // Locators - Método de Pago
+    // Locators - Payment Method
+    private By paymentMethodPanelLink = By.cssSelector("a[href='#collapse-payment-method']");
     private By paymentMethodRadio = By.cssSelector("input[name='payment_method']");
     private By agreeCheckbox = By.cssSelector("input[name='agree']");
-    private By placeOrderButton = By.id("button-payment-method");
+    private By continuePaymentMethodButton = By.id("button-payment-method");
+
+    // Locators - Confirm Order
+    private By confirmOrderPanelLink = By.cssSelector("a[href='#collapse-checkout-confirm']");
+    private By confirmOrderButton = By.id("button-confirm");
 
     // Locators - Confirmación
     private By confirmationMessage = By.cssSelector(".alert-success h1");
@@ -102,7 +104,8 @@ public class CheckoutPage extends PageObject {
      * Completa los datos de envío (Billing Address)
      */
     public void fillShippingAddress(GuestCheckout guest) {
-        waitForElementPresent(firstNameField);
+        expandBillingDetailsIfNeeded();
+        waitUntilVisible(firstNameField);
 
         // Llenar datos de envío
         fillField(firstNameField, guest.getFirstName());
@@ -113,15 +116,16 @@ public class CheckoutPage extends PageObject {
         fillField(cityField, guest.getCity());
         fillField(postcodeField, guest.getPostalCode());
 
-        // Seleccionar país
+        // Seleccionar país (este demo está en inglés; el modelo puede venir en español)
         selectDropdown(countrySelect, guest.getCountry());
-        waitABit(1000);
+        waitABit(750);
 
-        // Seleccionar estado
+        // Seleccionar estado/zona (puede depender del país)
         selectDropdown(stateSelect, guest.getState());
 
-        // Continuar
-        find(continueShippingButton).click();
+        // Continuar a Payment Method
+        waitUntilClickable(continueBillingButton);
+        find(continueBillingButton).click();
         waitABit(2000);
     }
 
@@ -129,20 +133,18 @@ public class CheckoutPage extends PageObject {
      * Selecciona el método de envío
      */
     public void selectShippingMethod() {
-        waitForElementPresent(shippingMethodRadio);
-        WebElement shippingRadio = find(shippingMethodRadio);
-        if (!shippingRadio.isSelected()) {
-            shippingRadio.click();
-        }
-        find(continueShippingMethodButton).click();
-        waitABit(2000);
+        // This OpenCart demo checkout does not expose a separate Shipping Method step.
+        // Keep this method as a synchronization point for the next step.
+        expandPaymentMethodIfNeeded();
+        waitUntilVisible(paymentMethodRadio);
     }
 
     /**
      * Selecciona el método de pago y coloca la orden
      */
     public void selectPaymentMethodAndPlaceOrder() {
-        waitForElementPresent(paymentMethodRadio);
+        expandPaymentMethodIfNeeded();
+        waitUntilVisible(paymentMethodRadio);
 
         WebElement paymentRadio = find(paymentMethodRadio);
         if (!paymentRadio.isSelected()) {
@@ -159,9 +161,64 @@ public class CheckoutPage extends PageObject {
             // El checkbox puede no estar disponible en todas las versiones
         }
 
-        // Coloca la orden
-        find(placeOrderButton).click();
+        // Continuar a Confirm Order
+        waitUntilClickable(continuePaymentMethodButton);
+        find(continuePaymentMethodButton).click();
+        waitABit(1500);
+
+        // Confirmar orden
+        expandConfirmOrderIfNeeded();
+        waitUntilClickable(confirmOrderButton);
+        find(confirmOrderButton).click();
         waitABit(3000);
+    }
+
+    private void expandBillingDetailsIfNeeded() {
+        try {
+            if (getDriver().findElements(firstNameField).size() > 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            waitUntilClickable(billingDetailsPanelLink);
+            find(billingDetailsPanelLink).click();
+            waitABit(500);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void expandPaymentMethodIfNeeded() {
+        try {
+            if (getDriver().findElements(paymentMethodRadio).size() > 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            waitUntilClickable(paymentMethodPanelLink);
+            find(paymentMethodPanelLink).click();
+            waitABit(500);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void expandConfirmOrderIfNeeded() {
+        try {
+            if (getDriver().findElements(confirmOrderButton).size() > 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            waitUntilClickable(confirmOrderPanelLink);
+            find(confirmOrderPanelLink).click();
+            waitABit(500);
+        } catch (Exception ignored) {
+        }
     }
 
     /**
