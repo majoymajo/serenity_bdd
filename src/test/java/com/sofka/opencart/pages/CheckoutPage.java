@@ -1,201 +1,107 @@
 package com.sofka.opencart.pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.Select;
-import net.serenitybdd.core.pages.PageObject;
 import com.sofka.opencart.models.GuestCheckout;
+import net.serenitybdd.core.pages.PageObject;
+import net.serenitybdd.core.pages.WebElementFacade;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.Select;
 
-/**
- * Page Object para la página de Checkout
- */
+import java.time.Duration;
+
 public class CheckoutPage extends PageObject {
 
-    public CheckoutPage(WebDriver driver) {
-        super(driver);
-        PageFactory.initElements(driver, this);
-    }
+    private static final By GUEST_RADIO = By.cssSelector("input[value='guest']");
+    private static final By CONTINUE_ACCOUNT_BUTTON = By.id("button-account");
 
-    // Locators - Pestaña de opciones de checkout
-    private By guestCheckoutRadio = By.cssSelector("input[value='guest']");
-    private By continueGuestButton = By.id("button-account");
+    private static final By FIRST_NAME = By.id("input-firstname");
+    private static final By LAST_NAME = By.id("input-lastname");
+    private static final By EMAIL = By.id("input-email");
+    private static final By TELEPHONE = By.id("input-telephone");
+    private static final By ADDRESS = By.id("input-shipping-address-1");
+    private static final By CITY = By.id("input-shipping-city");
+    private static final By POSTCODE = By.id("input-shipping-postcode");
+    private static final By COUNTRY_SELECT = By.id("input-shipping-country");
+    private static final By STATE_SELECT = By.id("input-shipping-zone");
+    private static final By CONTINUE_SHIPPING_BUTTON = By.id("button-shipping-address");
 
-    // Locators - Datos de Envío
-    private By firstNameField = By.id("input-firstname");
-    private By lastNameField = By.id("input-lastname");
-    private By emailField = By.id("input-email");
-    private By telephoneField = By.id("input-telephone");
-    private By addressField = By.id("input-shipping-address-1");
-    private By cityField = By.id("input-shipping-city");
-    private By postcodeField = By.id("input-shipping-postcode");
-    private By countrySelect = By.id("input-shipping-country");
-    private By stateSelect = By.id("input-shipping-zone");
-    private By continueShippingButton = By.id("button-shipping-address");
+    private static final By SHIPPING_METHOD_RADIO = By.cssSelector("input[name='shipping_method']");
+    private static final By CONTINUE_SHIPPING_METHOD = By.id("button-shipping-method");
 
-    // Locators - Método de Envío
-    private By shippingMethodRadio = By.cssSelector("input[name='shipping_method']");
-    private By continueShippingMethodButton = By.id("button-shipping-method");
+    private static final By PAYMENT_METHOD_RADIO = By.cssSelector("input[name='payment_method']");
+    private static final By AGREE_CHECKBOX = By.cssSelector("input[name='agree']");
+    private static final By PLACE_ORDER_BUTTON = By.id("button-payment-method");
 
-    // Locators - Método de Pago
-    private By paymentMethodRadio = By.cssSelector("input[name='payment_method']");
-    private By agreeCheckbox = By.cssSelector("input[name='agree']");
-    private By placeOrderButton = By.id("button-payment-method");
+    private static final By ORDER_CONFIRMATION_HEADING = By.tagName("h1");
 
-    // Locators - Confirmación
-    private By confirmationMessage = By.cssSelector(".alert-success h1");
-    private By orderConfirmation = By.tagName("h1");
-
-    /**
-     * Selecciona Guest Checkout
-     */
     public void selectGuestCheckout() {
-        waitForElementPresent(guestCheckoutRadio);
-        WebElement radio = find(guestCheckoutRadio);
+        WebElementFacade radio = $(GUEST_RADIO).waitUntilVisible();
         if (!radio.isSelected()) {
             radio.click();
         }
-        find(continueGuestButton).click();
-        waitABit(2000);
+        $(CONTINUE_ACCOUNT_BUTTON).click();
     }
 
-    /**
-     * Completa los datos de envío (Billing Address)
-     */
     public void fillShippingAddress(GuestCheckout guest) {
-        waitForElementPresent(firstNameField);
-        
-        // Llenar datos de envío
-        fillField(firstNameField, guest.getFirstName());
-        fillField(lastNameField, guest.getLastName());
-        fillField(emailField, guest.getEmail());
-        fillField(telephoneField, guest.getTelephone());
-        fillField(addressField, guest.getAddress());
-        fillField(cityField, guest.getCity());
-        fillField(postcodeField, guest.getPostalCode());
+        $(FIRST_NAME).withTimeoutOf(Duration.ofSeconds(10)).waitUntilVisible();
 
-        // Seleccionar país
-        selectDropdown(countrySelect, guest.getCountry());
-        waitABit(1000);
+        typeInto(FIRST_NAME, guest.getFirstName());
+        typeInto(LAST_NAME, guest.getLastName());
+        typeInto(EMAIL, guest.getEmail());
+        typeInto(TELEPHONE, guest.getTelephone());
+        typeInto(ADDRESS, guest.getAddress());
+        typeInto(CITY, guest.getCity());
+        typeInto(POSTCODE, guest.getPostalCode());
 
-        // Seleccionar estado
-        selectDropdown(stateSelect, guest.getState());
-        
-        // Continuar
-        find(continueShippingButton).click();
-        waitABit(2000);
+        selectByText(COUNTRY_SELECT, guest.getCountry());
+        $(STATE_SELECT).waitUntilEnabled();
+        selectByText(STATE_SELECT, guest.getState());
+
+        $(CONTINUE_SHIPPING_BUTTON).click();
     }
 
-    /**
-     * Selecciona el método de envío
-     */
     public void selectShippingMethod() {
-        waitForElementPresent(shippingMethodRadio);
-        WebElement shippingRadio = find(shippingMethodRadio);
-        if (!shippingRadio.isSelected()) {
-            shippingRadio.click();
+        WebElementFacade radio = $(SHIPPING_METHOD_RADIO).waitUntilVisible();
+        if (!radio.isSelected()) {
+            radio.click();
         }
-        find(continueShippingMethodButton).click();
-        waitABit(2000);
+        $(CONTINUE_SHIPPING_METHOD).click();
     }
 
-    /**
-     * Selecciona el método de pago y coloca la orden
-     */
     public void selectPaymentMethodAndPlaceOrder() {
-        waitForElementPresent(paymentMethodRadio);
-        
-        WebElement paymentRadio = find(paymentMethodRadio);
+        WebElementFacade paymentRadio = $(PAYMENT_METHOD_RADIO).waitUntilVisible();
         if (!paymentRadio.isSelected()) {
             paymentRadio.click();
         }
-
-        // Aceptar términos y condiciones
-        try {
-            WebElement agree = find(agreeCheckbox);
-            if (!agree.isSelected()) {
-                agree.click();
-            }
-        } catch (Exception e) {
-            // El checkbox puede no estar disponible en todas las versiones
+        if ($(AGREE_CHECKBOX).isPresent() && !$(AGREE_CHECKBOX).isSelected()) {
+            $(AGREE_CHECKBOX).click();
         }
-
-        // Coloca la orden
-        find(placeOrderButton).click();
-        waitABit(3000);
+        $(PLACE_ORDER_BUTTON).click();
     }
 
-    /**
-     * Verifica que el mensaje de confirmación esté visible
-     */
     public boolean isOrderConfirmed() {
-        try {
-            WebElement confirmation = find(orderConfirmation);
-            String text = confirmation.getText();
-            return text.contains("Your order has been placed");
-        } catch (Exception e) {
-            return false;
-        }
+        return $(ORDER_CONFIRMATION_HEADING)
+                .withTimeoutOf(Duration.ofSeconds(15))
+                .waitUntilVisible()
+                .getText()
+                .contains("Your order has been placed");
     }
 
-    /**
-     * Obtiene el texto del mensaje de confirmación
-     */
     public String getConfirmationMessage() {
-        try {
-            return find(orderConfirmation).getText();
-        } catch (Exception e) {
-            return "";
-        }
+        return $(ORDER_CONFIRMATION_HEADING).getText();
     }
 
-    /**
-     * Llena un campo de texto
-     */
-    private void fillField(By locator, String value) {
-        WebElement field = find(locator);
+    private void typeInto(By locator, String value) {
+        WebElementFacade field = $(locator);
         field.clear();
         field.sendKeys(value);
     }
 
-    /**
-     * Selecciona un valor de un dropdown
-     */
-    private void selectDropdown(By locator, String value) {
+    private void selectByText(By locator, String visibleText) {
         try {
-            WebElement dropdown = find(locator);
-            Select select = new Select(dropdown);
-            
-            try {
-                select.selectByVisibleText(value);
-            } catch (Exception e) {
-                // Si no encuentra por texto visible, intenta por valor
-                select.selectByValue(value);
-            }
+            Select select = new Select(find(locator));
+            select.selectByVisibleText(visibleText);
         } catch (Exception e) {
-            // El dropdown puede no estar presente
+            new Select(find(locator)).selectByValue(visibleText);
         }
-    }
-
-    /**
-     * Espera un tiempo determinado
-     */
-    @Override
-    protected void waitABit(long milliseconds) {
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * Espera a que un elemento esté presente en el DOM
-     */
-    private void waitForElementPresent(By locator) {
-        getDriver().manage().timeouts().implicitlyWait(
-            java.time.Duration.ofSeconds(10)
-        );
     }
 }
