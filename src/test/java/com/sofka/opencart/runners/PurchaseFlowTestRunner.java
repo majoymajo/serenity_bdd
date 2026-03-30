@@ -11,8 +11,7 @@ import org.junit.runner.RunWith;
         plugin = {
                 "pretty",
                 "json:target/cucumber-reports/cucumber.json"
-        },
-        tags = "@smoke or @regression"
+        }
 )
 public class PurchaseFlowTestRunner {
 }

@@ -4,7 +4,6 @@ import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Y;
-import net.serenitybdd.annotations.Steps;
 import com.sofka.opencart.pages.CartPage;
 import com.sofka.opencart.pages.CheckoutPage;
 import com.sofka.opencart.pages.HomePage;
@@ -14,13 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PurchaseFlowSteps {
 
-    @Steps
     private HomePage homePage;
 
-    @Steps
     private CartPage cartPage;
 
-    @Steps
     private CheckoutPage checkoutPage;
 
     @Dado("que el usuario está en la página de inicio de OpenCart")
