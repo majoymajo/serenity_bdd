@@ -86,12 +86,8 @@ public class CheckoutPage extends PageObject {
     }
 
     private void expandCheckoutOptionsIfNeeded() {
-        try {
-            // If the radio is already present, do nothing
-            if (getDriver().findElements(guestCheckoutRadio).size() > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
+        if (isAnyDisplayed(guestCheckoutRadio) || isAnyDisplayed(continueGuestButton)) {
+            return;
         }
 
         try {
@@ -339,15 +335,38 @@ public class CheckoutPage extends PageObject {
         expandConfirmOrderIfNeeded();
         waitUntilClickable(confirmOrderButton);
         find(confirmOrderButton).click();
-        waitABit(3000);
+
+        // Wait until we actually reach the success/confirmation page
+        waitForOrderSuccess();
+    }
+
+    private void waitForOrderSuccess() {
+        try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(30)).until(driver -> {
+                try {
+                    String url = driver.getCurrentUrl();
+                    if (url != null && url.contains("checkout/success")) {
+                        return true;
+                    }
+                } catch (Exception ignored) {
+                }
+
+                try {
+                    if (driver.findElements(orderConfirmation).size() > 0) {
+                        String h1 = driver.findElement(orderConfirmation).getText();
+                        return h1 != null && h1.toLowerCase().contains("your order has been placed");
+                    }
+                } catch (Exception ignored) {
+                }
+                return false;
+            });
+        } catch (Exception ignored) {
+        }
     }
 
     private void expandBillingDetailsIfNeeded() {
-        try {
-            if (getDriver().findElements(firstNameField).size() > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
+        if (isAnyDisplayed(firstNameField) || isAnyDisplayed(continueBillingButton)) {
+            return;
         }
 
         try {
@@ -359,11 +378,8 @@ public class CheckoutPage extends PageObject {
     }
 
     private void expandPaymentMethodIfNeeded() {
-        try {
-            if (getDriver().findElements(paymentMethodRadio).size() > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
+        if (isAnyDisplayed(paymentMethodRadio) || isAnyDisplayed(continuePaymentMethodButton)) {
+            return;
         }
 
         try {
@@ -375,11 +391,8 @@ public class CheckoutPage extends PageObject {
     }
 
     private void expandConfirmOrderIfNeeded() {
-        try {
-            if (getDriver().findElements(confirmOrderButton).size() > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
+        if (isAnyDisplayed(confirmOrderButton)) {
+            return;
         }
 
         try {
