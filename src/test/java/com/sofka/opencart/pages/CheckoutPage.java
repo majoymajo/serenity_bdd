@@ -40,6 +40,15 @@ public class CheckoutPage extends PageObject {
     private By stateSelect = By.id("input-payment-zone");
     private By continueBillingButton = By.id("button-guest");
 
+    // Locators - Shipping Address (may appear depending on configuration)
+    private By shippingAddressPanelLink = By.cssSelector("a[href='#collapse-shipping-address']");
+    private By continueShippingAddressButton = By.id("button-shipping-address");
+
+    // Locators - Shipping Method
+    private By shippingMethodPanelLink = By.cssSelector("a[href='#collapse-shipping-method']");
+    private By shippingMethodRadio = By.cssSelector("input[name='shipping_method']");
+    private By continueShippingMethodButton = By.id("button-shipping-method");
+
     // Locators - Payment Method
     private By paymentMethodPanelLink = By.cssSelector("a[href='#collapse-payment-method']");
     private By paymentMethodRadio = By.cssSelector("input[name='payment_method']");
@@ -53,6 +62,9 @@ public class CheckoutPage extends PageObject {
     // Locators - Confirmación
     private By confirmationMessage = By.cssSelector(".alert-success h1");
     private By orderConfirmation = By.tagName("h1");
+
+    // Locators - Validation / errors
+    private By dangerAlert = By.cssSelector(".alert.alert-danger");
 
     /**
      * Selecciona Guest Checkout
@@ -100,6 +112,17 @@ public class CheckoutPage extends PageObject {
                 .until(ExpectedConditions.elementToBeClickable(locator));
     }
 
+    private void waitUntilEnabled(By locator) {
+        new WebDriverWait(getDriver(), Duration.ofSeconds(20)).until(driver -> {
+            try {
+                WebElement element = find(locator);
+                return element.isDisplayed() && element.isEnabled();
+            } catch (Exception e) {
+                return false;
+            }
+        });
+    }
+
     /**
      * Completa los datos de envío (Billing Address)
      */
@@ -117,26 +140,132 @@ public class CheckoutPage extends PageObject {
         fillField(postcodeField, guest.getPostalCode());
 
         // Seleccionar país (este demo está en inglés; el modelo puede venir en español)
+        waitUntilEnabled(countrySelect);
         selectDropdown(countrySelect, guest.getCountry());
-        waitABit(750);
+        waitForZoneOptionsToLoad();
 
         // Seleccionar estado/zona (puede depender del país)
+        waitUntilEnabled(stateSelect);
         selectDropdown(stateSelect, guest.getState());
 
         // Continuar a Payment Method
         waitUntilClickable(continueBillingButton);
         find(continueBillingButton).click();
-        waitABit(2000);
+
+        // Wait until the next step appears OR surface validation errors
+        waitForNextCheckoutStepOrThrow();
+    }
+
+    private void waitForNextCheckoutStepOrThrow() {
+        By anyNextStep = By.cssSelector(
+                "#collapse-shipping-address.in, #collapse-shipping-address.show, " +
+                "#collapse-shipping-method.in, #collapse-shipping-method.show, " +
+                "#collapse-payment-method.in, #collapse-payment-method.show"
+        );
+
+        try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(25))
+                    .until(ExpectedConditions.or(
+                            ExpectedConditions.visibilityOfElementLocated(anyNextStep),
+                            ExpectedConditions.visibilityOfElementLocated(dangerAlert)
+                    ));
+        } catch (Exception ignored) {
+        }
+
+        if (getDriver().findElements(dangerAlert).size() > 0) {
+            String msg;
+            try {
+                msg = find(dangerAlert).getText();
+            } catch (Exception e) {
+                msg = "(no se pudo leer el detalle del error)";
+            }
+            throw new AssertionError("Checkout no avanzó tras Billing Details. Validación: " + msg);
+        }
+    }
+
+    private void waitForZoneOptionsToLoad() {
+        try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(15)).until(driver -> {
+                try {
+                    Select zones = new Select(find(stateSelect));
+                    return zones.getOptions().size() > 1;
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        } catch (Exception ignored) {
+            // If it doesn't load, selection will fall back later.
+        }
     }
 
     /**
      * Selecciona el método de envío
      */
     public void selectShippingMethod() {
-        // This OpenCart demo checkout does not expose a separate Shipping Method step.
-        // Keep this method as a synchronization point for the next step.
+        // OpenCart commonly uses: Billing -> (Shipping Address) -> Shipping Method -> Payment Method.
+        // If Shipping Address step appears, continue it (it is often prefilled / same as billing).
+        continueShippingAddressIfPresent();
+
+        // If Shipping Method step exists, pick the first available method and continue.
+        if (getDriver().findElements(shippingMethodRadio).size() > 0 || getDriver().findElements(shippingMethodPanelLink).size() > 0) {
+            expandShippingMethodIfNeeded();
+            waitUntilVisible(shippingMethodRadio);
+
+            WebElement method = find(shippingMethodRadio);
+            if (!method.isSelected()) {
+                method.click();
+            }
+
+            waitUntilClickable(continueShippingMethodButton);
+            find(continueShippingMethodButton).click();
+            waitABit(1500);
+        }
+
+        // Now Payment Method should be reachable
         expandPaymentMethodIfNeeded();
         waitUntilVisible(paymentMethodRadio);
+    }
+
+    private void continueShippingAddressIfPresent() {
+        try {
+            if (getDriver().findElements(continueShippingAddressButton).size() == 0 && getDriver().findElements(shippingAddressPanelLink).size() == 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+            return;
+        }
+
+        try {
+            // Expand if needed
+            if (getDriver().findElements(continueShippingAddressButton).size() == 0) {
+                waitUntilClickable(shippingAddressPanelLink);
+                find(shippingAddressPanelLink).click();
+                waitABit(500);
+            }
+
+            if (getDriver().findElements(continueShippingAddressButton).size() > 0) {
+                waitUntilClickable(continueShippingAddressButton);
+                find(continueShippingAddressButton).click();
+                waitABit(1500);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void expandShippingMethodIfNeeded() {
+        try {
+            if (getDriver().findElements(shippingMethodRadio).size() > 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            waitUntilClickable(shippingMethodPanelLink);
+            find(shippingMethodPanelLink).click();
+            waitABit(500);
+        } catch (Exception ignored) {
+        }
     }
 
     /**
@@ -258,18 +387,47 @@ public class CheckoutPage extends PageObject {
      * Selecciona un valor de un dropdown
      */
     private void selectDropdown(By locator, String value) {
-        try {
-            WebElement dropdown = find(locator);
-            Select select = new Select(dropdown);
+        WebElement dropdown = find(locator);
+        Select select = new Select(dropdown);
 
-            try {
-                select.selectByVisibleText(value);
-            } catch (Exception e) {
-                // Si no encuentra por texto visible, intenta por valor
-                select.selectByValue(value);
+        if (value == null) {
+            selectFirstNonEmpty(select);
+            return;
+        }
+
+        String normalized = value.trim();
+
+        // Common Spanish->English mapping for this demo
+        if (normalized.equalsIgnoreCase("España")) {
+            normalized = "Spain";
+        }
+
+        try {
+            select.selectByVisibleText(normalized);
+            return;
+        } catch (Exception ignored) {
+        }
+
+        try {
+            select.selectByValue(normalized);
+            return;
+        } catch (Exception ignored) {
+        }
+
+        // Fall back to the first valid option to avoid blocking the flow
+        selectFirstNonEmpty(select);
+    }
+
+    private void selectFirstNonEmpty(Select select) {
+        for (WebElement option : select.getOptions()) {
+            String v = option.getAttribute("value");
+            if (v != null && !v.isBlank()) {
+                try {
+                    select.selectByValue(v);
+                } catch (Exception ignored) {
+                }
+                return;
             }
-        } catch (Exception e) {
-            // El dropdown puede no estar presente
         }
     }
 

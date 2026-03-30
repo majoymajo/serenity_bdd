@@ -31,12 +31,13 @@ public class GuestCheckout {
                 .firstName("Juan")
                 .lastName("Pérez")
                 .email("juan.perez@example.com")
-                .telephone("+34 612345678")
+                .telephone("612345678")
                 .address("Calle Principal 123, Apartamento 4B")
                 .city("Madrid")
                 .state("Madrid")
                 .postalCode("28001")
-                .country("España")
+                // The demo site UI is in English
+                .country("Spain")
                 .build();
     }
 }
