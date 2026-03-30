@@ -99,7 +99,6 @@
                         <include>**/*Runner.java</include>
                     </includes>
                     <!-- Ensure tests run serially to avoid driver conflicts -->
-                    <parallel>false</parallel>
                     <!-- Increase timeout for test execution -->
                     <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
                 </configuration>
@@ -123,4 +122,5 @@
         </plugins>
     </build>
 </project>
+
 
