@@ -96,17 +96,13 @@
                     <!-- Increase timeout for test execution -->
                     <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
                     <systemPropertyVariables>
-                        <!-- Force Serenity/Selenium to use the locally cached EdgeDriver (offline-friendly) -->
-                        <webdriver.driver>edge</webdriver.driver>
-                        <webdriver.edge.driver>${user.home}/.cache/selenium/msedgedriver/win64/146.0.3856.62/msedgedriver.exe</webdriver.edge.driver>
+                        <!-- Force Serenity to use our provided Edge driver (offline-friendly) -->
+                        <webdriver.driver>provided</webdriver.driver>
+                        <webdriver.provided.type>localedge</webdriver.provided.type>
+                        <webdriver.provided.localedge>com.sofka.opencart.webdriver.LocalEdgeDriverSource</webdriver.provided.localedge>
 
-                        <!-- WebDriverManager is used internally by Serenity 3.1.0; keep it fully offline -->
-                        <wdm.avoidExternalConnections>true</wdm.avoidExternalConnections>
-                        <wdm.avoidBrowserDetection>true</wdm.avoidBrowserDetection>
-                        <wdm.avoidResolutionCache>true</wdm.avoidResolutionCache>
-                        <wdm.avoidFallback>true</wdm.avoidFallback>
-                        <wdm.cachePath>${user.home}/.cache/selenium</wdm.cachePath>
-                        <wdm.edgeDriverVersion>146.0.3856.62</wdm.edgeDriverVersion>
+                        <!-- Point to the cached driver by default (can be overridden with -Dwebdriver.edge.driver=...) -->
+                        <webdriver.edge.driver>${user.home}\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe</webdriver.edge.driver>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
