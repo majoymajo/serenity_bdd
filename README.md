@@ -9,8 +9,8 @@ Este proyecto contiene pruebas funcionales E2E (End-to-End) automatizadas para v
 ## ✅ REQUISITOS PREVIOS
 
 ### 1. Java Development Kit (JDK)
-- **Versión:** 11 o superior
-- **Descargar de:** https://www.oracle.com/java/technologies/javase-jdk11-downloads.html
+- **Versión:** 17 o superior
+- **Descargar de:** https://adoptium.net/
 - **Verificar instalación:** `java -version`
 
 ### 2. Apache Maven
@@ -44,16 +44,15 @@ cd opencart-serenity-e2e
 ```
 opencart-serenity-e2e/
 ├── src/
-│   ├── main/java/com/sofka/opencart/
-│   │   ├── models/
-│   │   │   ├── Product.java
-│   │   │   └── GuestCheckout.java
-│   │   └── pages/
-│   │       ├── HomePage.java
-│   │       ├── CartPage.java
-│   │       └── CheckoutPage.java
 │   └── test/
 │       ├── java/com/sofka/opencart/
+│       │   ├── models/
+│       │   │   ├── Product.java
+│       │   │   └── GuestCheckout.java
+│       │   ├── pages/
+│       │   │   ├── HomePage.java
+│       │   │   ├── CartPage.java
+│       │   │   └── CheckoutPage.java
 │       │   ├── stepdefinitions/
 │       │   │   └── PurchaseFlowSteps.java
 │       │   └── runners/
@@ -73,13 +72,13 @@ mvn clean install
 ```
 
 Esto descargará todas las dependencias definidas en `pom.xml`:
-- **Serenity BDD:** 3.9.0
-- **Selenium WebDriver:** 4.14.0
-- **Cucumber:** 7.14.0
+- **Serenity BDD:** 3.1.0
+- **Selenium WebDriver:** 4.0.0
+- **Cucumber:** 6.x (gestionado por Serenity transitivamente)
 - **JUnit:** 4.13.2
-- **WebDriverManager:** 5.6.2
+- **AssertJ:** 3.24.2
 - **Lombok:** 1.18.30
-- Y otras dependencias de soporte
+- **Java:** 17
 
 ### PASO 4: Ejecutar las pruebas
 
@@ -234,7 +233,7 @@ getDriver().executeScript("arguments[0].scrollIntoView();")
 ```
 
 ### ❌ "Las pruebas se ejecutan en headless y no veo nada"
-**Solución:** Comentar `chrome.options.headless=old` en `serenity.properties` para abrira ventana de navegador visible.
+**Solución:** En `serenity.properties`, cambiar `chrome.switches=--headless=old` por `chrome.switches=--start-maximized`.
 
 ### ❌ "Los reportes no se generan"
 **Solución:** Ejecutar `mvn verify` (en lugar de solo `mvn test`). Verificar que `target/site/serenity/` exista.
@@ -297,9 +296,9 @@ jobs:
 |-------|-------|
 | **Proyecto** | OpenCart Serenity E2E Tests |
 | **Versión** | 1.0.0 |
-| **Framework** | Serenity BDD 3.9.0 |
-| **Selenium** | 4.14.0 |
-| **Java** | 11+ |
+| **Framework** | Serenity BDD 3.1.0 |
+| **Selenium** | 4.0.0 |
+| **Java** | 17+ |
 
 Para reportar issues o sugerencias:
 👉 https://github.com/sofka/opencart-serenity-e2e/issues
