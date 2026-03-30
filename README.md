@@ -44,13 +44,13 @@ Este proyecto contiene pruebas funcionales E2E (End-to-End) automatizadas para v
 
 ### PASO 1: Clonar el repositorio
 ```bash
-git clone https://github.com/sofka/opencart-serenity-e2e.git
-cd opencart-serenity-e2e
+git clone https://github.com/majoymajo/serenity_bdd.git
+cd serenity_bdd
 ```
 
 ### PASO 2: Verificar la estructura del proyecto
 ```
-opencart-serenity-e2e/
+serenity_bdd/
 ├── src/
 │   └── test/
 │       ├── java/com/sofka/opencart/
