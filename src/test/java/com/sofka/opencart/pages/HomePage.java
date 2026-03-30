@@ -5,7 +5,11 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import net.serenitybdd.core.pages.PageObject;
+
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -19,10 +23,9 @@ public class HomePage extends PageObject {
     }
 
     // Locators
-    private By shopLink = By.linkText("Shop");
     private By cartLink = By.cssSelector("a[title='Shopping Cart']");
     private By productLinks = By.cssSelector(".product-thumb");
-    private By addToCartButtons = By.cssSelector(".btn-primary");
+    private By addToCartButtonInProduct = By.cssSelector("button[onclick*='cart.add']");
     private By cartCounter = By.cssSelector(".badge");
     private By successMessage = By.cssSelector(".alert-success");
 
@@ -31,16 +34,17 @@ public class HomePage extends PageObject {
      */
     public void navigateTo() {
         getDriver().navigate().to("http://opencart.abstracta.us/");
-        waitABit(2000);
+        waitForProductsToLoad();
     }
 
     /**
      * Abre la página de tienda
      */
     public void clickShop() {
-        waitForElementPresent(shopLink);
-        find(shopLink).click();
-        waitABit(2000);
+        // The OpenCart demo home page already lists products (Featured).
+        // Older versions/themes may have had a "Shop" link; this site does not.
+        // Keep this method as a stable sync point.
+        waitForProductsToLoad();
     }
 
     /**
@@ -63,9 +67,8 @@ public class HomePage extends PageObject {
             scrollToElement(products.get(productIndex));
             waitABit(500);
 
-            // Buscar el botón "Add to Cart" más cercano
-            WebElement addButton = products.get(productIndex)
-                    .findElement(By.cssSelector(".btn-primary"));
+            // Buscar el botón "Add to Cart" del producto (OpenCart uses onclick="cart.add(...)")
+            WebElement addButton = products.get(productIndex).findElement(addToCartButtonInProduct);
             addButton.click();
             waitABit(1500);
         }
@@ -127,5 +130,10 @@ public class HomePage extends PageObject {
     private void waitForElementPresent(By locator) {
         getDriver().manage().timeouts().implicitlyWait(
                 java.time.Duration.ofSeconds(10));
+    }
+
+    private void waitForProductsToLoad() {
+        new WebDriverWait(getDriver(), Duration.ofSeconds(20))
+                .until(ExpectedConditions.visibilityOfElementLocated(productLinks));
     }
 }
