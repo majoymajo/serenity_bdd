@@ -65,6 +65,7 @@ public class CheckoutPage extends PageObject {
 
     // Locators - Validation / errors
     private By dangerAlert = By.cssSelector(".alert.alert-danger");
+    private By warningAlert = By.cssSelector(".alert.alert-warning");
 
     /**
      * Selecciona Guest Checkout
@@ -209,7 +210,11 @@ public class CheckoutPage extends PageObject {
         // If Shipping Method step exists, pick the first available method and continue.
         if (getDriver().findElements(shippingMethodRadio).size() > 0 || getDriver().findElements(shippingMethodPanelLink).size() > 0) {
             expandShippingMethodIfNeeded();
-            waitUntilVisible(shippingMethodRadio);
+            waitForShippingMethodOrThrow();
+
+            if (getDriver().findElements(shippingMethodRadio).isEmpty()) {
+                throw new AssertionError("No hay opciones de envío disponibles (shipping_method no encontrado).");
+            }
 
             WebElement method = find(shippingMethodRadio);
             if (!method.isSelected()) {
@@ -224,6 +229,32 @@ public class CheckoutPage extends PageObject {
         // Now Payment Method should be reachable
         expandPaymentMethodIfNeeded();
         waitUntilVisible(paymentMethodRadio);
+    }
+
+    private void waitForShippingMethodOrThrow() {
+        try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(25))
+                    .until(ExpectedConditions.or(
+                            ExpectedConditions.visibilityOfElementLocated(shippingMethodRadio),
+                            ExpectedConditions.visibilityOfElementLocated(dangerAlert),
+                            ExpectedConditions.visibilityOfElementLocated(warningAlert)
+                    ));
+        } catch (Exception ignored) {
+        }
+
+        if (getDriver().findElements(dangerAlert).size() > 0 || getDriver().findElements(warningAlert).size() > 0) {
+            String msg;
+            try {
+                if (getDriver().findElements(dangerAlert).size() > 0) {
+                    msg = find(dangerAlert).getText();
+                } else {
+                    msg = find(warningAlert).getText();
+                }
+            } catch (Exception e) {
+                msg = "(no se pudo leer el detalle del error)";
+            }
+            throw new AssertionError("No se pudieron cargar opciones de envío. Mensaje: " + msg);
+        }
     }
 
     private void continueShippingAddressIfPresent() {
