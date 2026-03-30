@@ -61,6 +61,7 @@ public class CheckoutPage extends PageObject {
 
     // Locators - Confirmación
     private By confirmationMessage = By.cssSelector(".alert-success h1");
+    private By orderConfirmationHeading = By.cssSelector("#content h1");
     private By orderConfirmation = By.tagName("h1");
 
     // Locators - Validation / errors
@@ -360,8 +361,32 @@ public class CheckoutPage extends PageObject {
                 }
                 return false;
             });
+            return;
         } catch (Exception ignored) {
+            // Fall through to diagnostics
         }
+
+        String url;
+        try {
+            url = getDriver().getCurrentUrl();
+        } catch (Exception e) {
+            url = "(no se pudo obtener URL)";
+        }
+
+        String alertMsg = "";
+        try {
+            if (getDriver().findElements(dangerAlert).size() > 0) {
+                alertMsg = find(dangerAlert).getText();
+            } else if (getDriver().findElements(warningAlert).size() > 0) {
+                alertMsg = find(warningAlert).getText();
+            }
+        } catch (Exception ignored2) {
+        }
+
+        if (alertMsg != null && !alertMsg.isBlank()) {
+            throw new AssertionError("La orden no llegó a checkout/success. URL actual: " + url + ". Alerta: " + alertMsg);
+        }
+        throw new AssertionError("La orden no llegó a checkout/success. URL actual: " + url);
     }
 
     private void expandBillingDetailsIfNeeded() {
@@ -408,6 +433,14 @@ public class CheckoutPage extends PageObject {
      */
     public boolean isOrderConfirmed() {
         try {
+            try {
+                String url = getDriver().getCurrentUrl();
+                if (url != null && url.toLowerCase().contains("checkout/success")) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+
             new WebDriverWait(getDriver(), Duration.ofSeconds(25))
                     .until(ExpectedConditions.visibilityOfElementLocated(orderConfirmation));
             WebElement confirmation = find(orderConfirmation);
@@ -423,6 +456,24 @@ public class CheckoutPage extends PageObject {
      */
     public String getConfirmationMessage() {
         try {
+            // Prefer the content heading on the success page
+            try {
+                if (getDriver().getCurrentUrl() != null && getDriver().getCurrentUrl().toLowerCase().contains("checkout/success")) {
+                    new WebDriverWait(getDriver(), Duration.ofSeconds(25))
+                            .until(ExpectedConditions.visibilityOfElementLocated(orderConfirmationHeading));
+                    return find(orderConfirmationHeading).getText();
+                }
+            } catch (Exception ignored) {
+            }
+
+            // Fallbacks
+            if (getDriver().findElements(orderConfirmationHeading).size() > 0) {
+                return find(orderConfirmationHeading).getText();
+            }
+            if (getDriver().findElements(confirmationMessage).size() > 0) {
+                return find(confirmationMessage).getText();
+            }
+
             new WebDriverWait(getDriver(), Duration.ofSeconds(25))
                     .until(ExpectedConditions.visibilityOfElementLocated(orderConfirmation));
             return find(orderConfirmation).getText();
