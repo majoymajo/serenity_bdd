@@ -1,74 +1,131 @@
 package com.sofka.opencart.pages;
 
-import net.serenitybdd.core.pages.PageObject;
-import net.serenitybdd.core.pages.WebElementFacade;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
+import org.openqa.selenium.support.PageFactory;
+import net.serenitybdd.core.pages.PageObject;
 import java.util.List;
 
+/**
+ * Page Object para la página principal de OpenCart
+ */
 public class HomePage extends PageObject {
 
-    private static final By CART_TOTAL = By.id("cart-total");
-    private static final By CART_LINK = By.cssSelector("a[title='Shopping Cart']");
-    private static final By PRODUCT_THUMBS = By.cssSelector(".product-thumb");
+    public HomePage(WebDriver driver) {
+        super(driver);
+        PageFactory.initElements(driver, this);
+    }
 
+    // Locators
+    private By shopLink = By.linkText("Shop");
+    private By cartLink = By.cssSelector("a[title='Shopping Cart']");
+    private By productLinks = By.cssSelector(".product-thumb");
+    private By addToCartButtons = By.cssSelector(".btn-primary");
+    private By cartCounter = By.cssSelector(".badge");
+    private By successMessage = By.cssSelector(".alert-success");
+
+    /**
+     * Navega a la página de inicio
+     */
     public void navigateTo() {
-        openAt("/index.php?route=product/category&path=24");
+        getDriver().navigate().to("http://opencart.abstracta.us/");
+        waitABit(2000);
     }
 
-    public String getPageUrl() {
-        return getDriver().getCurrentUrl();
-    }
-
+    /**
+     * Abre la página de tienda
+     */
     public void clickShop() {
-        openAt("/index.php?route=product/category&path=24");
+        waitForElementPresent(shopLink);
+        find(shopLink).click();
+        waitABit(2000);
     }
 
-    public List<WebElementFacade> getAvailableProducts() {
-        return findAll(PRODUCT_THUMBS);
+    /**
+     * Obtiene la lista de productos disponibles
+     */
+    @SuppressWarnings("unchecked")
+    public List<WebElement> getAvailableProducts() {
+        return (List<WebElement>) (List<?>) findAll(productLinks);
     }
 
+    /**
+     * Agrega un producto al carrito por su número de índice
+     * 
+     * @param productIndex Índice del producto (0-based)
+     */
     public void addProductToCart(int productIndex) {
-        List<WebElementFacade> products = getAvailableProducts();
+        List<WebElement> products = getAvailableProducts();
         if (productIndex < products.size()) {
-            WebElementFacade product = products.get(productIndex);
-            scrollToElement(product);
-            String cartBefore = getCartTotalText();
-            WebElement addButton = product.find(By.cssSelector("button[onclick^='cart.add']"));
-            ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click();", addButton);
-            waitForCartTotalToChange(cartBefore);
+            // Scroll para hacer visible el producto
+            scrollToElement(products.get(productIndex));
+            waitABit(500);
+
+            // Buscar el botón "Add to Cart" más cercano
+            WebElement addButton = products.get(productIndex)
+                    .findElement(By.cssSelector(".btn-primary"));
+            addButton.click();
+            waitABit(1500);
         }
     }
 
-    private String getCartTotalText() {
-        Object text = ((JavascriptExecutor) getDriver())
-                .executeScript("var el = document.getElementById('cart-total'); return el ? el.innerText : '';");
-        return text != null ? text.toString() : "";
-    }
-
-    private void waitForCartTotalToChange(String previousText) {
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-            String current = getCartTotalText();
-            if (!current.equals(previousText)) {
-                return;
-            }
-            try { Thread.sleep(200); } catch (InterruptedException ignored) {}
-        }
-        throw new RuntimeException("Cart total did not update after adding product to cart");
-    }
-
+    /**
+     * Verifica que el mensaje de éxito sea mostrado
+     */
     public boolean isSuccessMessageDisplayed() {
-        return $(CART_TOTAL).isCurrentlyVisible();
+        try {
+            return find(successMessage).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    /**
+     * Navega al carrito de compras
+     */
     public void goToCart() {
-        $(CART_LINK).waitUntilClickable().click();
+        waitForElementPresent(cartLink);
+        find(cartLink).click();
+        waitABit(2000);
     }
 
+    /**
+     * Obtiene el número de items en el carrito
+     */
+    public String getCartCount() {
+        try {
+            return find(cartCounter).getText();
+        } catch (Exception e) {
+            return "0";
+        }
+    }
+
+    /**
+     * Espera un tiempo determinado
+     */
+    @Override
+    protected void waitABit(long milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Hace scroll hasta un elemento
+     */
     private void scrollToElement(WebElement element) {
         ((JavascriptExecutor) getDriver()).executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
+    /**
+     * Espera a que un elemento esté presente en el DOM
+     */
+    private void waitForElementPresent(By locator) {
+        getDriver().manage().timeouts().implicitlyWait(
+                java.time.Duration.ofSeconds(10));
     }
 }

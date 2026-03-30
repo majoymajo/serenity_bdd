@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Modelo de datos para Guest Checkout
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuestCheckout {
-
     private String firstName;
     private String lastName;
     private String email;
@@ -21,18 +23,20 @@ public class GuestCheckout {
     private String postalCode;
     private String country;
 
+    /**
+     * Datos de prueba para checkout invitado
+     */
     public static GuestCheckout testData() {
-        String uniqueEmail = "test.user." + System.currentTimeMillis() + "@example.com";
         return GuestCheckout.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email(uniqueEmail)
-                .telephone("3001234567")
-                .address("123 Main Street")
-                .city("Medellin")
-                .state("Antioquia")
-                .postalCode("050001")
-                .country("Colombia")
+                .firstName("Juan")
+                .lastName("Pérez")
+                .email("juan.perez@example.com")
+                .telephone("+34 612345678")
+                .address("Calle Principal 123, Apartamento 4B")
+                .city("Madrid")
+                .state("Madrid")
+                .postalCode("28001")
+                .country("España")
                 .build();
     }
 }

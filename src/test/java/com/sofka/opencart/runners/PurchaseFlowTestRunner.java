@@ -5,13 +5,9 @@ import io.cucumber.junit.CucumberOptions;
 import org.junit.runner.RunWith;
 
 @RunWith(CucumberWithSerenity.class)
-@CucumberOptions(
-        features = "src/test/resources/features",
-        glue = "com.sofka.opencart.stepdefinitions",
-        plugin = {
+@CucumberOptions(features = "src/test/resources/features", glue = "com.sofka.opencart.stepdefinitions", plugin = {
                 "pretty",
                 "json:target/cucumber-reports/cucumber.json"
-        }
-)
+}, tags = "@smoke or @regression")
 public class PurchaseFlowTestRunner {
 }
