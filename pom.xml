@@ -16,9 +16,9 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <serenity.version>3.6.0</serenity.version>
-        <serenity.maven.version>3.6.0</serenity.maven.version>
-        <selenium.version>4.10.0</selenium.version>
+        <serenity.version>2.7.0</serenity.version>
+        <serenity.maven.version>2.7.0</serenity.maven.version>
+        <selenium.version>4.9.1</selenium.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
