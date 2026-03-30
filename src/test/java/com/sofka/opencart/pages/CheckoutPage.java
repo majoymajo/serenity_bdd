@@ -124,6 +124,18 @@ public class CheckoutPage extends PageObject {
         });
     }
 
+    private boolean isAnyDisplayed(By locator) {
+        try {
+            for (WebElement el : getDriver().findElements(locator)) {
+                if (el != null && el.isDisplayed()) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
     /**
      * Completa los datos de envío (Billing Address)
      */
@@ -284,11 +296,8 @@ public class CheckoutPage extends PageObject {
     }
 
     private void expandShippingMethodIfNeeded() {
-        try {
-            if (getDriver().findElements(shippingMethodRadio).size() > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
+        if (isAnyDisplayed(shippingMethodRadio) || isAnyDisplayed(continueShippingMethodButton)) {
+            return;
         }
 
         try {
