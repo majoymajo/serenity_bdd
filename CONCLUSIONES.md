@@ -1,5 +1,30 @@
 # 📊 CONCLUSIONES Y HALLAZGOS - PROYECTO OPENCART SERENITY E2E
 
+## 🎯 RESUMEN EJECUTIVO
+
+**Estado del Proyecto:** ✅ **COMPLETADO Y FUNCIONAL**
+
+Este proyecto de pruebas E2E automatizadas para OpenCart ha sido exitosamente desarrollado, depurado y optimizado. El flujo completo de compra (desde selección de productos hasta confirmación de orden) **se ejecuta correctamente** con Serenity BDD en un entorno con restricciones de red e infraestructura limitada.
+
+### Logros Principales
+
+✅ **Build Status:** `mvn clean test` → **BUILD SUCCESS**  
+✅ **Test Results:** 1 test run, **0 failures**, 0 errors  
+✅ **Cobertura:** Flujo E2E completo (Home → Productos → Carrito → Checkout Guest → Confirmación)  
+✅ **Infraestructura:** Operativo con Microsoft Edge driver provisto (offline)  
+✅ **Documentación:** README.md y CONCLUSIONES.md actualizados  
+
+### Problemas Resoltos
+
+| Problema | Solución | Resultado |
+|----------|----------|-----------|
+| WebDriver bloqueado (DNS/Red) | Driver Edge provisto offline | ✅ Funciona sin internet |
+| ClassCastException (Chrome→Edge) | LocalEdgeDriverSource personalizado | ✅ Instanciación correcta |
+| Flujo Checkout desincronizado | Esperas AJAX + expansión de paneles | ✅ Progresión determinística |
+| Validación flaky de confirmación | URL success + wait headings | ✅ Detección confiable |
+
+---
+
 ## 📌 TÍTULO DEL PROYECTO
 
 **Pruebas Funcionales Automatizadas E2E del Flujo de Compra en OpenCart** con Framework Serenity BDD
@@ -97,6 +122,140 @@
 ✓ Waitings condicionales: isDisplayed(), isSelected()  
 ✓ Scroll automático: scrollToElement() para elementos ocultos  
 ✓ Thread.sleep() estratégico para transiciones de página
+
+---
+
+## 🔧 PROBLEMAS IDENTIFICADOS Y SOLUCIONES APLICADAS
+
+### 1. PROBLEMA: Infraestructura WebDriver Bloqueada
+
+**Síntoma:**
+- Fallo al descargar drivers (Chrome/Firefox): `java.net.UnknownHostException`
+- No hay navegadores instalados en el entorno (solo Microsoft Edge)
+- WebDriverManager intenta descargar drivers desde internet pero falla por bloqueo de DNS/red
+
+**Solución Implementada:**
+✓ Cambio de Chrome/Firefox a **Microsoft Edge** (disponible en el sistema)  
+✓ Uso de driver **provisto/offline**: ruta cacheada en `C:\Users\usuario\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe`  
+✓ Implementación de **LocalEdgeDriverSource** personalizado que instancia EdgeDriver sin depender de descargas automáticas  
+✓ Configuración de `pom.xml` con propiedades de sistema: `webdriver.driver=provided`, `webdriver.provided.type=localedge`  
+✓ Eliminación de dependencia WebDriverManager para evitar intentos de descarga
+
+**Resultado:**
+✅ WebDriver inicia correctamente sin errores de red  
+✅ Aplicación funciona offline con driver cacheado  
+✅ Compatible con restricciones de firewall/DNS
+
+### 2. PROBLEMA: Casteo de Opciones (ChromeOptions → EdgeOptions)
+
+**Síntoma:**
+- `java.lang.ClassCastException: ChromeOptions cannot be cast to EdgeOptions`
+- Serenity internamente creaba ChromeOptions aunque configuremos Edge
+
+**Solución Implementada:**
+✓ Implementar interfaz `DriverSource` personalizada (LocalEdgeDriverSource.java)  
+✓ Crear EdgeDriver explícitamente con EdgeOptions (no confiar en defaults de Serenity)  
+✓ Configurar capabilities: `--disable-gpu`, `--window-size=1920,1080`, `acceptInsecureCerts=true`  
+✓ Bypassear el proveedor interno de drivers de Serenity
+
+**Resultado:**
+✅ No hay conflicto de tipos  
+✅ Control explícito sobre opciones del navegador  
+✅ Compatible con Serenity 5.3.10
+
+### 3. PROBLEMA: Locators y Flujo del Checkout No Alineados
+
+**Síntoma:**
+- Elementos con ID "Shop" no existen en HomePage  
+- Selector `button.btn-cart` no coincide con estructura real de OpenCart  
+- Flujo de checkout no sigue el orden esperado (Billing → Shipping Address → Shipping Method → Payment → Confirm)  
+- Fallo buscando `input[name='payment_method']` justo después de Billing Details
+
+**Solución Implementada:**
+
+**HomePage:**
+✓ Cambio de elemento "Shop" a click en productos directamente  
+✓ Selector correcto para "Add to Cart": `button[onclick*='cart.add']`  
+✓ Wait explícito para productos: `WebDriverWait` a `.product-thumb`
+
+**CartPage:**
+✓ Locator de botón Checkout refinado: `a.btn.btn-primary[href*='checkout/checkout']`  
+✓ Navegación por HTTP en lugar de HTTPS (evita error de certificado en navegador)  
+✓ Detección robusta de carrito vacío (múltiples selectores)
+
+**CheckoutPage:**
+✓ **Step 1 (Guest Checkout):** `input[name='account'][value='guest']` + `#button-account`  
+✓ **Step 2 (Billing Details):** Locators `input-payment-*` (firstname, lastname, email, etc.)  
+✓ **Step 2.5 (Shipping Address opcional):** Panel colapsable con continuación `#button-shipping-address`  
+✓ **Step 3 (Shipping Method):** Panel colapsable, selección de radio `input[name='shipping_method']`, continuación `#button-shipping-method`  
+✓ **Step 4 (Payment Method):** Panel colapsable, `input[name='payment_method']`, `#button-payment-method`  
+✓ **Step 5 (Confirm Order):** `#button-confirm`  
+✓ **Success Page:** Validación por URL `checkout/success` + heading `#content h1`
+
+**Mejoras de Sincronización:**
+✓ `waitUntilEnabled()`: Espera a que dropdowns estén habilitados antes de seleccionar  
+✓ `waitForZoneOptionsToLoad()`: Wait AJAX para cargar zonas tras seleccionar país  
+✓ `waitForNextCheckoutStepOrThrow()`: Espera a que el siguiente panel se expanda o captura errores de validación  
+✓ `waitForShippingMethodOrThrow()`: Detecta si hay métodos de envío disponibles o muestra alerta  
+✓ `waitForOrderSuccess()`: Esperamis al URL `checkout/success` con diagnóstico de errores  
+✓ Expansión de paneles basada en **visibilidad real** (no solo presencia en DOM)
+
+**Dropdown robusto:**
+✓ Mapeo de país "España" → "Spain"  
+✓ Selección por texto visible + fallback por valor + fallback a primera opción válida  
+✓ Manejo de opciones vacías ("", "-- Please Select --")
+
+**Resultado:**
+✅ Todos los pasos del checkout avanzan de forma determinística  
+✅ Esperas no causan timeouts flakey  
+✅ Errores de validación se capturan y reportan explícitamente  
+✅ Flujo E2E completo funciona: Home → Products → Cart → Checkout → Success
+
+### 4. PROBLEMA: Aserción de Confirmación no Confiable
+
+**Síntoma:**
+- Aserción `"Your order has been placed!"` falla aunque el checkout se haya completado  
+- Timing issues: página de success tarda más de lo esperado  
+- Caso sensitivo en comparación (`Your Order Has Been Placed!` vs `Your order has been placed!`)
+
+**Solución Implementada:**
+✓ Validación primaria por URL `checkout/success` (más confiable que búsqueda de texto)  
+✓ Wait explícito a `#content h1` antes de leer el mensaje  
+✓ Comparación **case-insensitive** (`.toLowerCase()`)  
+✓ Fallbacks a múltiples locators: `#content h1` → `.alert-success h1` → cualquier `h1`  
+✓ Step definition también usa `.toLowerCase()` para comparación
+
+**Resultado:**
+✅ Confirmación se valida de forma sólida y sin flakiness  
+✅ Compatible con variaciones de OpenCart
+
+---
+
+## ✅ ESTADO FINAL DEL PROYECTO
+
+### Ejecución
+```bash
+mvn clean test
+```
+**Resultado:** ✅ **BUILD SUCCESS** - 1 test run, 0 failures, 0 errors
+
+### Escenarios Validados
+✅ **Flujo E2E Completo:** Desde home hasta confirmación de orden  
+✅ **Navegación:** Productos → Carrito → Checkout  
+✅ **Guest Checkout:** Sin crear cuenta  
+✅ **Billing Address:** Datos de facturación con país (Spain) y estado  
+✅ **Shipping Method:** Selección de método de envío  
+✅ **Payment Method:** Selección de método de pago  
+✅ **Order Confirmation:** Validación de mensaje success
+
+### Entorno Soportado
+- **SO:** Windows 10/11
+- **Java:** 17
+- **Maven:** 3.8+
+- **Serenity BDD:** 5.3.10
+- **Selenium WebDriver:** 4.x (gestionado por Serenity)
+- **Navegador:** Microsoft Edge 146+
+- **Conectividad:** Offline (driver cacheado localmente)
 
 **Recomendaciones:**
 - Usar WebDriverWait preferentemente sobre Thread.sleep()

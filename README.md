@@ -4,28 +4,35 @@
 
 Este proyecto contiene pruebas funcionales E2E (End-to-End) automatizadas para validar el flujo completo de compra en OpenCart utilizando **Serenity BDD** como framework de automatización.
 
+**Estado:** ✅ **FUNCIONAL Y LISTO PARA USAR** - Todas las pruebas pasan con `mvn clean test`
+
+**Navegador:** Microsoft Edge (driver offline cacheado - sin depender de descargas de internet)  
+**Sitio de Prueba:** http://opencart.abstracta.us/ (OpenCart demo público)  
+**Éscenarios:** Flujo E2E completo de compra (Home → Productos → Carrito → Checkout → Confirmación)
+
 ---
 
 ## ✅ REQUISITOS PREVIOS
 
 ### 1. Java Development Kit (JDK)
-- **Versión:** 11 o superior (proyecto configurado para Java 11)
+- **Versión:** 17 o superior (proyecto configurado para Java 17)
 - **Descargar de:** https://adoptium.net/
 - **Verificar instalación:** `java -version`
 
 ### 2. Apache Maven
-- **Versión:** 3.6.0 o superior
+- **Versión:** 3.8.0 o superior
 - **Descargar de:** https://maven.apache.org/download.cgi
 - **Verificar instalación:** `mvn -version`
 
-### 3. Git
+### 3. Microsoft Edge
+- **IMPORTANTE:** El proyecto está configurado para usar **Microsoft Edge** (no Chrome)
+- **Versión:** 146 o superior (o compatible con el driver cacheado)
+- **WebDriver:** Ya está cacheado en `C:\Users\usuario\.cache\selenium\msedgedriver\` (descarga manual, NO automática)
+- **Nota:** No requiere WebDriverManager; usa driver provisto offline
+
+### 4. Git (Opcional)
 - **Descargar de:** https://git-scm.com/downloads
 - **Verificar instalación:** `git --version`
-
-### 4. Google Chrome
-- El proyecto utiliza ChromeDriver para controlar el navegador
-- **Versión:** Compatible con Selenium 4.0.0
-- **WebDriverManager:** Descarga automática de ChromeDriver (incluido en pom.xml)
 
 ### 5. IDE Recomendado
 - **IntelliJ IDEA** Community o Ultimate
@@ -73,57 +80,66 @@ mvn clean install
 ```
 
 Esto descargará todas las dependencias definidas en `pom.xml`:
-- **Serenity BDD Core:** 3.1.0
-- **Serenity Cucumber:** 3.1.0 (incluye Selenium y Cucumber transitivamente)
-- **Selenium WebDriver:** 4.0.0 (gestionado por Serenity)
-- **Cucumber:** 6.11.0 (gestionado por Serenity transitivamente)
+- **Serenity BDD Core:** 5.3.10
+- **Serenity Cucumber:** 5.3.10 (incluye Selenium y Cucumber transitivamente)
+- **Selenium WebDriver:** 4.x (gestionado por Serenity)
+- **Cucumber:** 7.x (gestionado por Serenity transitivamente)
 - **JUnit:** 4.13.2
-- **WebDriverManager:** 5.6.0 (descarga automática de ChromeDriver)
 - **Lombok:** 1.18.30
-- **Java:** 11
+- **Java:** 17
 
-#### ⚠️ NOTA IMPORTANTE: Gestión de Dependencias
-Este proyecto sigue la **mejor práctica de Serenity BDD**: 
-- ✅ NO declarar explícitamente Selenium ni Cucumber en pom.xml
-- ✅ Permitir que **serenity-cucumber** gestione todas las versiones transitivas
-- ✅ Esto garantiza compatibilidad y evita conflictos de claspath
+#### ⚠️ NOTA IMPORTANTE: Configuración de Driver
+Este proyecto está configurado para usar **Microsoft Edge con driver provisto (offline)**:
+- ✅ **NO** utiliza WebDriverManager para descargas automáticas
+- ✅ El driver EdgeDriver está pre-cacheado en: `C:\Users\usuario\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe`
+- ✅ Implementa `LocalEdgeDriverSource.java` para instanciar EdgeDriver explícitamente
+- ✅ Configurable en `pom.xml` con propiedades de sistema:
+  - `webdriver.driver=provided`
+  - `webdriver.provided.type=localedge`
+  - `webdriver.provided.localedge=com.sofka.opencart.webdriver.LocalEdgeDriverSource`
+  - `webdriver.edge.driver=${user.home}\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe`
 
-Si actualizas manualmente versiones de Selenium o Cucumber, causarás conflictos de tipo en el JVM forked de Surefire.
+**Ventajas:**
+- ✓ Funciona **offline** (sin descargas de internet)
+- ✓ Compatible con entornos restrictivos (firewall/DNS bloqueado)
+- ✓ Control explícito sobre versión y ubicación del driver
+- ✓ No causa errores de casteo (ChromeOptions → EdgeOptions)
 
 ### PASO 4: Ejecutar las pruebas
 
-#### Opción A: Ejecutar todas las pruebas
+#### Opción A: Ejecutar todas las pruebas (recomendado)
 ```bash
-mvn clean verify
+mvn clean test
 ```
 
-#### Opción B: Ejecutar solo las pruebas (sin reportes)
+Esta es la forma estándar; genera reportes en `target/site/serenity/index.html`
+
+#### Opción B: Ejecutar con verbose output (troubleshooting)
 ```bash
-mvn test
+mvn test -e -DtrimStackTrace=false
 ```
 
-#### Opción C: Ejecutar con etiquetas específicas
+#### Opción C: Ejecutar con maven en quiet mode
 ```bash
-mvn test -Dcucumber.filter.tags="@smoke"
-```
-
-#### Opción D: Ejecutar un escenario específico
-```bash
-mvn test -Dcucumber.filter.tags="@purchase"
+mvn -q clean test
 ```
 
 ### PASO 5: Ver los reportes generados
 
-Después de ejecutar las pruebas, los reportes estarán disponibles en:
+Después de ejecutar `mvn clean test`, los reportes de Serenity estarán disponibles en:
 
 **Ruta:** `target/site/serenity/index.html`
 
 Abre este archivo en un navegador web para ver:
 - ✓ Resumen de ejecución
-- ✓ Detalle de cada escenario
-- ✓ Screenshots de cada paso
-- ✓ Logs de ejecución
+- ✓ Detalle de cada escenario (paso a paso)
+- ✓ Screenshots de cada paso (capturados automáticamente por Serenity)
+- ✓ Logs de ejecución detallados
 - ✓ Tiempos de ejecución
+- ✓ Navegador utilizado (Edge)
+- ✓ Información de errores (si los hay)
+
+**Nota:** El reporte se genera automáticamente; abre el HTML en cualquier navegador.
 
 ---
 
@@ -140,11 +156,15 @@ src/test/java/com/sofka/opencart/
 
 src/test/resources/
 ├── features/        → Archivos .feature con escenarios en Gherkin
-└── serenity.properties → Configuración de Serenity BDD
+└── serenity.properties → Configuración de Serenity BDD (webdriver.driver=provided, etc.)
+
+src/test/java/com/sofka/opencart/webdriver/
+└── LocalEdgeDriverSource.java → Implementación de driver provisto para Edge
 
 target/
-├── site/serenity/   → Reportes HTML generados
-├── cucumber-reports/→ Reportes de Cucumber
+├── site/serenity/   → Reportes HTML generados (abre index.html)
+├── cucumber-reports/→ Reportes de Cucumber en JSON
+├── surefire-reports/→ Reportes de Maven Surefire
 └── test-classes/    → Clases compiladas
 ```
 
@@ -247,69 +267,88 @@ Configuración específica de Serenity:
    - lombok
    - logging (sf4j/log4j)
 
-**Ejemplo correcto:**
-```xml
-<!-- ✅ CORRECTO -->
-<dependency>
-    <groupId>net.serenity-bdd</groupId>
-    <artifactId>serenity-cucumber</artifactId>
-    <version>3.1.0</version>
-    <scope>test</scope>
-</dependency>
+---
 
-<!-- ❌ EVITAR ESTO -->
-<!-- NO agregar manualmente selenium-java, selenium-chrome-driver, cucumber-java -->
-```
+## 🔧 TROUBLESHOOTING Y SOLUCIONES
 
-### ❌ "ChromeDriver no encontrado"
-**Solución:** El proyecto usa WebDriverManager que descarga automáticamente. Si persiste, verificar:
+### ✅ Verificar la configuración del driver Edge
+
+**Para confirmar que todo está correcto:**
+
 ```bash
-mvn dependency:tree | findstr webdriver
+# 1. Verificar que el driver está en caché
+ls C:\Users\%USERNAME%\.cache\selenium\msedgedriver\win64\
+
+# 2. Verificar que la propiedad en pom.xml apunta a la ruta correcta
+type pom.xml | findstr "webdriver.edge.driver"
+
+# 3. Ejecutar las pruebas con verbose
+mvn test -e -DtrimStackTrace=false
 ```
 
-### ❌ "Timeout esperando elemento"
-**Solución:** Aumentar `webdriver.timeouts.implicitly.wait` en `serenity.properties` (valores en segundos)
+### ❌ "java.net.UnknownHostException" al descargar drivers
 
-### ❌ "Elemento no interactuable"
-**Solución:** Agregar scroll:
-```java
-getDriver().executeScript("arguments[0].scrollIntoView();", element);
+**CAUSA:** El sistema intenta descargar drivers desde internet pero está bloqueado  
+**Solución:** Este proyecto ya está configurado para usar driver **offline/provisto**. Verificar que:
+
+1. El archivo `src/test/java/com/sofka/opencart/webdriver/LocalEdgeDriverSource.java` existe
+2. El driver Edge está en caché: `C:\Users\usuario\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe`
+3. `pom.xml` tiene las propiedades de sistema configuradas correctamente
+
+```xml
+<systemPropertyVariables>
+    <webdriver.driver>provided</webdriver.driver>
+    <webdriver.provided.type>localedge</webdriver.provided.type>
+    <webdriver.provided.localedge>com.sofka.opencart.webdriver.LocalEdgeDriverSource</webdriver.provided.localedge>
+    <webdriver.edge.driver>${user.home}\.cache\selenium\msedgedriver\win64\146.0.3856.62\msedgedriver.exe</webdriver.edge.driver>
+</systemPropertyVariables>
 ```
 
-### ❌ "Las pruebas se ejecutan en headless y no veo nada"
-**Solución:** En `serenity.properties`, cambiar:
-```properties
-# Para headless (CI/CD):
-chrome.switches=--headless=new,--no-sandbox,--disable-dev-shm-usage
+### ❌ "ClassCastException: ChromeOptions cannot be cast to EdgeOptions"
 
-# Para modo visible (desarrollo local):
-chrome.switches=--start-maximized
+**CAUSA:** Serenity internamente creaba ChromeOptions aunque se configure Edge  
+**Solución:** Ya está resuelta en este proyecto gracias a `LocalEdgeDriverSource.java`  
+**Verificar:** Si sigues teniendo el error, revisar que `LocalEdgeDriverSource` esté siendo usado:
+
+```bash
+grep -r "LocalEdgeDriverSource" src/
+# Debería devolver referencias en pom.xml y serenity.properties
 ```
+
+### ❌ "TimeoutException esperando elemento"
+
+**Causas comunes:**
+- Elemento está en un panel colapsado (no visible)
+- Wait no es suficiente para AJAX
+- Locator no es preciso
+
+**Soluciones:**
+1. Las esperas explícitas ya están implementadas en `CheckoutPage.java`
+2. Si falla, aumentar duración en `serenity.properties`:
+   ```properties
+   webdriver.timeouts.implicitly.wait = 25
+   webdriver.wait.for.timeout = 30
+   ```
+3. Verificar el locator usando Developer Tools (F12) en Edge
 
 ### ❌ "Los reportes no se generan"
+
 **Solución:** 
-1. Ejecutar `mvn clean verify` (en lugar de solo `mvn test`)
-2. Verificar que `target/site/serenity/` exista
-3. Revisar el archivo `target/site/serenity/index.html`
-
-### ❌ "Proyecto en iCloudDrive y Maven falla en clean phase"
-**CAUSA:** iCloud sincronización bloquea archivos impidiendo que Maven borre `target/`
-
-**Solución:** Mover el proyecto a carpeta local (ej: `C:\Projects\` en Windows o `~/projects/` en Mac/Linux)
 ```bash
-# Windows
-robocopy "C:\Users\usuario\iCloudDrive\SOFKA\Serenity BDD" "C:\Projects\Serenity-OpenCart" /S /E
-
-# Mac/Linux
-cp -r ~/iCloudDrive/SOFKA/Serenity\ BDD ~/projects/Serenity-OpenCart
+mvn clean test  # Genera reportes automáticamente en target/site/serenity/
 ```
 
-### ❌ "Falta una dependencia o no descarga correctamente"
-**Solución:**
-```bash
-rm -rf ~/.m2/repository/net/serenity
-mvn clean install -U
-```
+Si aún no aparecen:
+1. Verificar que `target/site/serenity/index.html` existe
+2. Abrir en un navegador (no doble-click; usar `http://localhost:8000/...`)
+3. Limpiar caché: `mvn clean -DskipTests`
+
+### ❌ "Microsoft Edge no está instalado"
+
+**Solución:** Descargar e instalar Edge desde:  
+👉 https://www.microsoft.com/en-us/edge/download
+
+El proyecto está específicamente configurado para Edge; cambiar a Chrome requeriría actualizar `LocalEdgeDriverSource.java` y las propiedades de `pom.xml`.
 
 ---
 
@@ -338,44 +377,6 @@ jobs:
 
 ---
 
-## 📈 PRÓXIMOS PASOS / MEJORAS FUTURAS
-
-- [ ] Agregar más escenarios de prueba (errores, validaciones, etc.)
-- [ ] Implementar Page Factory y @FindBy para localizadores
-- [ ] Agregar timeout dinámicos según tipo de elemento
-- [ ] Implementar logging con SLF4J/Log4j2
-- [ ] Integración con herramientas de reporte (Allure, ExtentReports)
-- [ ] Paralelización de pruebas
-- [ ] Integración con Jira para trazabilidad
-- [ ] Datos dinámicos desde Excel/CSV
-- [ ] Video recording de ejecuciones fallidas
-- [ ] Implementar Screenplay Pattern (Actor/Ability/Interaction)
-
----
-
-## 📞 CONTACTO Y SOPORTE
-
-| Campo | Valor |
-|-------|-------|
-| **Proyecto** | OpenCart Serenity E2E Tests |
-| **Versión** | 1.0.0 |
-| **Framework** | Serenity BDD 3.1.0 |
-| **Selenium** | 4.0.0 |
-| **Java** | 17+ |
-
-Para reportar issues o sugerencias:
-👉 https://github.com/sofka/opencart-serenity-e2e/issues
-
----
-
-## 📄 LICENCIA Y TÉRMINOS
-
-Este proyecto es para fines educativos y de prueba.  
-OpenCart es una plataforma de e-commerce de código abierto.  
-Para más información: https://www.opencart.com/
-
----
-
-**Última actualización:** 2024
+**Última actualización:** 2026
 
 ---
