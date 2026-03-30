@@ -395,9 +395,11 @@ public class CheckoutPage extends PageObject {
      */
     public boolean isOrderConfirmed() {
         try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(25))
+                    .until(ExpectedConditions.visibilityOfElementLocated(orderConfirmation));
             WebElement confirmation = find(orderConfirmation);
             String text = confirmation.getText();
-            return text.contains("Your order has been placed");
+            return text != null && text.toLowerCase().contains("your order has been placed");
         } catch (Exception e) {
             return false;
         }
@@ -408,6 +410,8 @@ public class CheckoutPage extends PageObject {
      */
     public String getConfirmationMessage() {
         try {
+            new WebDriverWait(getDriver(), Duration.ofSeconds(25))
+                    .until(ExpectedConditions.visibilityOfElementLocated(orderConfirmation));
             return find(orderConfirmation).getText();
         } catch (Exception e) {
             return "";

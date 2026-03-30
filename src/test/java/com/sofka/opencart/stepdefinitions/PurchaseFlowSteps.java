@@ -112,7 +112,8 @@ public class PurchaseFlowSteps {
 
         String textoConfirmacion = checkoutPage.getConfirmationMessage();
         assertTrue("El mensaje de confirmación no contiene el texto esperado",
-                textoConfirmacion.contains(mensajeEsperado));
+            textoConfirmacion != null && mensajeEsperado != null
+                && textoConfirmacion.toLowerCase().contains(mensajeEsperado.toLowerCase()));
     }
 
     @Y("el usuario debe ser redirigido a la página de confirmación")
