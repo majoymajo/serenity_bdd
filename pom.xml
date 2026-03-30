@@ -16,9 +16,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <serenity.version>3.1.0</serenity.version>
-        <serenity.maven.version>3.1.0</serenity.maven.version>
-        <selenium.version>4.19.1</selenium.version>
+        <serenity.version>3.9.8</serenity.version>
+        <serenity.maven.version>3.9.8</serenity.maven.version>
+        <selenium.version>4.14.0</selenium.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
@@ -131,7 +131,7 @@
             <plugin>
                 <groupId>net.serenity-bdd.maven.plugins</groupId>
                 <artifactId>serenity-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.9.8</version>
                 <executions>
                     <execution>
                         <id>serenity-reports</id>
