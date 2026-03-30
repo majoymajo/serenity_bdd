@@ -25,7 +25,7 @@ public class PurchaseFlowSteps {
 
     @Dado("que el usuario está en la página de inicio de OpenCart")
     public void usuarioEnPaginaInicio() {
-        homePage.open();
+        homePage.navigateTo();
     }
 
     @Cuando("el usuario agrega {int} productos al carrito")
@@ -36,7 +36,7 @@ public class PurchaseFlowSteps {
             homePage.addProductToCart(i);
 
             if (i < cantidad - 1) {
-                homePage.open();
+                homePage.navigateTo();
                 homePage.clickShop();
             }
         }
