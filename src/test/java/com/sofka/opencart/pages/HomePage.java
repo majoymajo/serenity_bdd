@@ -11,7 +11,7 @@ import java.util.List;
 
 public class HomePage extends PageObject {
 
-    private static final By SHOP_LINK = By.linkText("Shop");
+
     private static final By CART_LINK = By.cssSelector("a[title='Shopping Cart']");
     private static final By PRODUCT_THUMBS = By.cssSelector(".product-thumb");
     private static final By SUCCESS_ALERT = By.cssSelector(".alert-success");
