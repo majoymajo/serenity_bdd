@@ -16,9 +16,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <serenity.version>3.9.8</serenity.version>
-        <serenity.maven.version>3.9.8</serenity.maven.version>
-        <selenium.version>4.21.0</selenium.version>
+        <serenity.version>3.1.0</serenity.version>
+        <serenity.maven.version>3.1.0</serenity.maven.version>
+        <selenium.version>4.0.0</selenium.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
@@ -124,6 +124,9 @@
                         <include>**/*Runner.java</include>
                     </includes>
                     <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
 
@@ -131,7 +134,7 @@
             <plugin>
                 <groupId>net.serenity-bdd.maven.plugins</groupId>
                 <artifactId>serenity-maven-plugin</artifactId>
-                <version>3.9.8</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>serenity-reports</id>
