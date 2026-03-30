@@ -16,6 +16,11 @@ import java.nio.file.Paths;
 }, tags = "@smoke or @regression")
 public class PurchaseFlowTestRunner {
 
+    static {
+        // JUnit creates the Cucumber/Serenity runner very early; set properties at class-load time.
+        forceOfflineWebDriverConfig();
+    }
+
     @BeforeClass
     public static void forceOfflineWebDriverConfig() {
         // Ensure Serenity/Selenium uses a locally available driver and never tries to download one.
