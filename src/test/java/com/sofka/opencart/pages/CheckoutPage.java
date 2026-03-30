@@ -4,9 +4,13 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import net.serenitybdd.core.pages.PageObject;
 import com.sofka.opencart.models.GuestCheckout;
+
+import java.time.Duration;
 
 /**
  * Page Object para la página de Checkout
@@ -19,7 +23,8 @@ public class CheckoutPage extends PageObject {
     }
 
     // Locators - Pestaña de opciones de checkout
-    private By guestCheckoutRadio = By.cssSelector("input[value='guest']");
+    private By checkoutOptionsPanelLink = By.cssSelector("a[href='#collapse-checkout-option']");
+    private By guestCheckoutRadio = By.cssSelector("input[name='account'][value='guest']");
     private By continueGuestButton = By.id("button-account");
 
     // Locators - Datos de Envío
@@ -51,13 +56,46 @@ public class CheckoutPage extends PageObject {
      * Selecciona Guest Checkout
      */
     public void selectGuestCheckout() {
-        waitForElementPresent(guestCheckoutRadio);
+        // Ensure Step 1 panel is expanded so the radio buttons exist/are interactable
+        expandCheckoutOptionsIfNeeded();
+
+        waitUntilVisible(guestCheckoutRadio);
         WebElement radio = find(guestCheckoutRadio);
         if (!radio.isSelected()) {
             radio.click();
         }
+
+        waitUntilClickable(continueGuestButton);
         find(continueGuestButton).click();
         waitABit(2000);
+    }
+
+    private void expandCheckoutOptionsIfNeeded() {
+        try {
+            // If the radio is already present, do nothing
+            if (getDriver().findElements(guestCheckoutRadio).size() > 0) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            waitUntilClickable(checkoutOptionsPanelLink);
+            find(checkoutOptionsPanelLink).click();
+            waitABit(500);
+        } catch (Exception ignored) {
+            // Best effort
+        }
+    }
+
+    private void waitUntilVisible(By locator) {
+        new WebDriverWait(getDriver(), Duration.ofSeconds(20))
+                .until(ExpectedConditions.visibilityOfElementLocated(locator));
+    }
+
+    private void waitUntilClickable(By locator) {
+        new WebDriverWait(getDriver(), Duration.ofSeconds(20))
+                .until(ExpectedConditions.elementToBeClickable(locator));
     }
 
     /**

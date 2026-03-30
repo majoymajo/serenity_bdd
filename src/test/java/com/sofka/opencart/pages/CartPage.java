@@ -20,9 +20,10 @@ public class CartPage extends PageObject {
     // Locators
     private By cartProducts = By.cssSelector("table.table tbody tr");
     private By cartTable = By.cssSelector(".table.table-striped");
-    private By checkoutButton = By.cssSelector("a[href*='checkout']");
+    private By checkoutButton = By.cssSelector("a.btn.btn-primary[href*='checkout/checkout']");
     private By continueShoppingButton = By.cssSelector("a[href*='continue']");
     private By cartEmptyMessage = By.cssSelector(".alert-info");
+    private By cartEmptyContentMessage = By.cssSelector("#content p");
     private By productNames = By.cssSelector("td:first-child a");
     private By productPrices = By.cssSelector("td:nth-child(2)");
     private By quantities = By.cssSelector("input[name*='quantity']");
@@ -52,9 +53,20 @@ public class CartPage extends PageObject {
      */
     public boolean isCartEmpty() {
         try {
-            return find(cartEmptyMessage).getText()
-                    .contains("Your shopping cart is empty");
+            if (containsText(cartEmptyMessage, "Your shopping cart is empty")) {
+                return true;
+            }
+
+            return containsText(cartEmptyContentMessage, "Your shopping cart is empty");
         } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean containsText(By locator, String expected) {
+        try {
+            return find(locator).getText().contains(expected);
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -93,7 +105,20 @@ public class CartPage extends PageObject {
      */
     public void proceedToCheckout() {
         waitForElementPresent(checkoutButton);
-        find(checkoutButton).click();
+        String href = find(checkoutButton).getAttribute("href");
+
+        // The site presents checkout links as HTTPS, but the certificate may be invalid in this environment.
+        // Use HTTP to keep the flow stable.
+        if (href != null && href.startsWith("https://")) {
+            href = href.replaceFirst("^https://", "http://");
+        }
+
+        if (href != null && !href.isBlank()) {
+            getDriver().navigate().to(href);
+        } else {
+            find(checkoutButton).click();
+        }
+
         waitABit(2000);
     }
 
