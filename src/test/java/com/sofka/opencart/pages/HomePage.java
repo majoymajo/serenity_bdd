@@ -37,7 +37,7 @@ public class HomePage extends PageObject {
         if (productIndex < products.size()) {
             WebElementFacade product = products.get(productIndex);
             scrollToElement(product);
-            WebElement addButton = product.find(By.cssSelector(".btn-primary"));
+            WebElement addButton = product.find(By.cssSelector("button[onclick^='cart.add']"));
             ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click();", addButton);
             $(SUCCESS_ALERT).withTimeoutOf(Duration.ofSeconds(15)).waitUntilVisible();
         }
