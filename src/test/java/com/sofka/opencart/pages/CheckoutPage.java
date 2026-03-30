@@ -10,19 +10,19 @@ import java.time.Duration;
 
 public class CheckoutPage extends PageObject {
 
-    private static final By GUEST_RADIO = By.cssSelector("input[value='guest']");
+    private static final By GUEST_RADIO = By.cssSelector("input[name='account'][value='guest']");
     private static final By CONTINUE_ACCOUNT_BUTTON = By.id("button-account");
 
-    private static final By FIRST_NAME = By.id("input-firstname");
-    private static final By LAST_NAME = By.id("input-lastname");
-    private static final By EMAIL = By.id("input-email");
-    private static final By TELEPHONE = By.id("input-telephone");
-    private static final By ADDRESS = By.id("input-shipping-address-1");
-    private static final By CITY = By.id("input-shipping-city");
-    private static final By POSTCODE = By.id("input-shipping-postcode");
-    private static final By COUNTRY_SELECT = By.id("input-shipping-country");
-    private static final By STATE_SELECT = By.id("input-shipping-zone");
-    private static final By CONTINUE_SHIPPING_BUTTON = By.id("button-shipping-address");
+    private static final By FIRST_NAME = By.id("input-payment-firstname");
+    private static final By LAST_NAME = By.id("input-payment-lastname");
+    private static final By EMAIL = By.id("input-payment-email");
+    private static final By TELEPHONE = By.id("input-payment-telephone");
+    private static final By ADDRESS = By.id("input-payment-address-1");
+    private static final By CITY = By.id("input-payment-city");
+    private static final By POSTCODE = By.id("input-payment-postcode");
+    private static final By COUNTRY_SELECT = By.id("input-payment-country");
+    private static final By STATE_SELECT = By.id("input-payment-zone");
+    private static final By CONTINUE_SHIPPING_BUTTON = By.id("button-guest");
 
     private static final By SHIPPING_METHOD_RADIO = By.cssSelector("input[name='shipping_method']");
     private static final By CONTINUE_SHIPPING_METHOD = By.id("button-shipping-method");
@@ -31,7 +31,7 @@ public class CheckoutPage extends PageObject {
     private static final By AGREE_CHECKBOX = By.cssSelector("input[name='agree']");
     private static final By PLACE_ORDER_BUTTON = By.id("button-payment-method");
 
-    private static final By ORDER_CONFIRMATION_HEADING = By.tagName("h1");
+    private static final By ORDER_CONFIRMATION_HEADING = By.cssSelector("#content h1");
 
     public void selectGuestCheckout() {
         WebElementFacade radio = $(GUEST_RADIO).waitUntilVisible();

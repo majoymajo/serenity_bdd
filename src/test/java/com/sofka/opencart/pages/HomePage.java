@@ -35,17 +35,23 @@ public class HomePage extends PageObject {
         if (productIndex < products.size()) {
             WebElementFacade product = products.get(productIndex);
             scrollToElement(product);
-            String cartBefore = $(CART_TOTAL).getText();
+            String cartBefore = getCartTotalText();
             WebElement addButton = product.find(By.cssSelector("button[onclick^='cart.add']"));
             ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click();", addButton);
             waitForCartTotalToChange(cartBefore);
         }
     }
 
+    private String getCartTotalText() {
+        Object text = ((JavascriptExecutor) getDriver())
+                .executeScript("var el = document.getElementById('cart-total'); return el ? el.innerText : '';");
+        return text != null ? text.toString() : "";
+    }
+
     private void waitForCartTotalToChange(String previousText) {
         long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
-            String current = $(CART_TOTAL).getText();
+            String current = getCartTotalText();
             if (!current.equals(previousText)) {
                 return;
             }
