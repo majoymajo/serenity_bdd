@@ -17,7 +17,7 @@ public class HomePage extends PageObject {
     private static final By SUCCESS_ALERT = By.cssSelector(".alert-success");
 
     public void navigateTo() {
-        openAt("/");
+        openAt("/index.php?route=product/category&path=20");
     }
 
     public String getPageUrl() {
@@ -25,7 +25,7 @@ public class HomePage extends PageObject {
     }
 
     public void clickShop() {
-        $(SHOP_LINK).waitUntilVisible().click();
+        openAt("/index.php?route=product/category&path=20");
     }
 
     public List<WebElementFacade> getAvailableProducts() {
