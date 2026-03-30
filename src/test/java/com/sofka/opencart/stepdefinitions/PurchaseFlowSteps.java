@@ -1,51 +1,42 @@
 package com.sofka.opencart.stepdefinitions;
 
-import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Cuando;
+import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Y;
-import net.serenitybdd.core.Serenity;
-import com.sofka.opencart.pages.HomePage;
+import net.thucydides.core.annotations.Steps;
 import com.sofka.opencart.pages.CartPage;
 import com.sofka.opencart.pages.CheckoutPage;
+import com.sofka.opencart.pages.HomePage;
 import com.sofka.opencart.models.GuestCheckout;
-import org.openqa.selenium.WebDriver;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PurchaseFlowSteps {
 
-    private WebDriver driver;
+    @Steps
     private HomePage homePage;
-    private CartPage cartPage;
-    private CheckoutPage checkoutPage;
-    private int productCount = 0;
 
-    public PurchaseFlowSteps() {
-        this.driver = Serenity.getDriver();
-    }
+    @Steps
+    private CartPage cartPage;
+
+    @Steps
+    private CheckoutPage checkoutPage;
 
     @Dado("que el usuario está en la página de inicio de OpenCart")
     public void usuarioEnPaginaInicio() {
-        homePage = new HomePage(driver);
-        homePage.navigateTo();
-        assertTrue("La página de inicio no se cargó correctamente",
-                driver.getCurrentUrl().contains("opencart"));
+        homePage.open();
     }
 
     @Cuando("el usuario agrega {int} productos al carrito")
-    public void usuarioAgregaProductosAlCarrito(int numeroDeProductos) {
+    public void usuarioAgregaProductosAlCarrito(int cantidad) {
         homePage.clickShop();
 
-        for (int i = 0; i < numeroDeProductos && i < homePage.getAvailableProducts().size(); i++) {
+        for (int i = 0; i < cantidad && i < homePage.getAvailableProducts().size(); i++) {
             homePage.addProductToCart(i);
-            productCount++;
 
-            assertTrue("El producto #" + (i + 1) + " no se agregó correctamente",
-                    homePage.isSuccessMessageDisplayed());
-
-            if (i < numeroDeProductos - 1) {
-                homePage.navigateTo();
+            if (i < cantidad - 1) {
+                homePage.open();
                 homePage.clickShop();
             }
         }
@@ -54,26 +45,23 @@ public class PurchaseFlowSteps {
     @Y("el usuario visualiza el carrito de compras")
     public void usuarioVisualizaElCarrito() {
         homePage.goToCart();
-        cartPage = new CartPage(driver);
     }
 
     @Entonces("el carrito debe contener {int} productos")
     public void elCarritoDebeContenerProductos(int cantidadEsperada) {
-        assertFalse("El carrito está vacío", cartPage.isCartEmpty());
-        assertTrue("El carrito no contiene los productos esperados",
-                cartPage.getProductCount() >= cantidadEsperada);
+        assertThat(cartPage.isCartEmpty()).as("El carrito no debería estar vacío").isFalse();
+        assertThat(cartPage.getProductCount()).as("El carrito debe tener al menos %d productos", cantidadEsperada)
+                .isGreaterThanOrEqualTo(cantidadEsperada);
     }
 
     @Y("el carrito debe mostrar los nombres de los productos")
     public void elCarritoDebeMostrarNombres() {
-        assertTrue("No hay nombres de productos en el carrito",
-                cartPage.getProductNames().size() > 0);
+        assertThat(cartPage.getProductNames()).as("El carrito debe mostrar nombres").isNotEmpty();
     }
 
     @Y("el carrito debe mostrar los precios de los productos")
     public void elCarritoDebeMostrarPrecios() {
-        assertTrue("No hay precios visibles en el carrito",
-                cartPage.getProductPrices().size() > 0);
+        assertThat(cartPage.getProductPrices()).as("El carrito debe mostrar precios").isNotEmpty();
     }
 
     @Cuando("el usuario procede a checkout")
@@ -83,14 +71,12 @@ public class PurchaseFlowSteps {
 
     @Y("el usuario selecciona Guest Checkout")
     public void usuarioSeleccionaGuestCheckout() {
-        checkoutPage = new CheckoutPage(driver);
         checkoutPage.selectGuestCheckout();
     }
 
     @Y("el usuario completa los datos de envío")
     public void usuarioCompletaDatosDeEnvio() {
-        GuestCheckout guest = GuestCheckout.testData();
-        checkoutPage.fillShippingAddress(guest);
+        checkoutPage.fillShippingAddress(GuestCheckout.testData());
     }
 
     @Y("el usuario selecciona un método de envío")
@@ -105,17 +91,17 @@ public class PurchaseFlowSteps {
 
     @Entonces("el usuario debe ver el mensaje de confirmación {string}")
     public void usuarioDebeVerMensajeDeConfirmacion(String mensajeEsperado) {
-        assertTrue("No se muestra el mensaje de confirmación",
-                checkoutPage.isOrderConfirmed());
-
-        String textoConfirmacion = checkoutPage.getConfirmationMessage();
-        assertTrue("El mensaje de confirmación no contiene el texto esperado",
-                textoConfirmacion.contains(mensajeEsperado));
+        assertThat(checkoutPage.isOrderConfirmed())
+                .as("La orden debe estar confirmada").isTrue();
+        assertThat(checkoutPage.getConfirmationMessage())
+                .as("El mensaje de confirmación debe contener: " + mensajeEsperado)
+                .contains(mensajeEsperado);
     }
 
     @Y("el usuario debe ser redirigido a la página de confirmación")
     public void usuarioDebeSerRedirigidoAConfirmacion() {
-        assertTrue("El usuario no fue redirigido a la página de confirmación",
-                driver.getCurrentUrl().contains("checkout"));
+        assertThat(homePage.getCurrentUrl())
+                .as("La URL debe contener 'checkout'")
+                .contains("checkout");
     }
 }
