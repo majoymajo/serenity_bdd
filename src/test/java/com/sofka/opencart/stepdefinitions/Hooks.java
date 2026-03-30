@@ -6,9 +6,11 @@ import net.serenitybdd.core.Serenity;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.time.Duration;
 
 /**
  * Cucumber Hooks para la configuración de WebDriver
@@ -42,10 +44,10 @@ public class Hooks {
             WebDriver driver = new ChromeDriver(options);
             
             // Registrar el driver con Serenity
-            Serenity.setWebDriver(driver);
+            Serenity.setDriver(driver);
             
-            // Configurar timeouts implícitos
-            driver.manage().timeouts().implicitlyWaitSeconds(20);
+            // Configurar timeouts implícitos usando WebDriverWait
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
             
             logger.info("WebDriver inicializado correctamente");
             

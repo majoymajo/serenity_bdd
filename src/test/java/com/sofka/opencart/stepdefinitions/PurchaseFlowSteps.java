@@ -10,23 +10,23 @@ import com.sofka.opencart.pages.CartPage;
 import com.sofka.opencart.pages.CheckoutPage;
 import com.sofka.opencart.models.GuestCheckout;
 import org.openqa.selenium.WebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.*;
 
 public class PurchaseFlowSteps {
 
-    private WebDriver driver;
+    private static final Logger logger = LoggerFactory.getLogger(PurchaseFlowSteps.class);
+    
     private HomePage homePage;
     private CartPage cartPage;
     private CheckoutPage checkoutPage;
     private int productCount = 0;
 
-    public PurchaseFlowSteps() {
-        this.driver = Serenity.getDriver();
-    }
-
     @Dado("que el usuario está en la página de inicio de OpenCart")
     public void usuarioEnPaginaInicio() {
+        WebDriver driver = Serenity.getDriver();
         homePage = new HomePage(driver);
         homePage.navigateTo();
         assertTrue("La página de inicio no se cargó correctamente",
@@ -53,6 +53,7 @@ public class PurchaseFlowSteps {
 
     @Y("el usuario visualiza el carrito de compras")
     public void usuarioVisualizaElCarrito() {
+        WebDriver driver = Serenity.getDriver();
         homePage.goToCart();
         cartPage = new CartPage(driver);
     }
@@ -83,6 +84,7 @@ public class PurchaseFlowSteps {
 
     @Y("el usuario selecciona Guest Checkout")
     public void usuarioSeleccionaGuestCheckout() {
+        WebDriver driver = Serenity.getDriver();
         checkoutPage = new CheckoutPage(driver);
         checkoutPage.selectGuestCheckout();
     }
@@ -115,6 +117,7 @@ public class PurchaseFlowSteps {
 
     @Y("el usuario debe ser redirigido a la página de confirmación")
     public void usuarioDebeSerRedirigidoAConfirmacion() {
+        WebDriver driver = Serenity.getDriver();
         assertTrue("El usuario no fue redirigido a la página de confirmación",
                 driver.getCurrentUrl().contains("checkout"));
     }
