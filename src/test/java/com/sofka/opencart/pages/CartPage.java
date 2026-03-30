@@ -31,8 +31,9 @@ public class CartPage extends PageObject {
     /**
      * Obtiene una lista de productos en el carrito
      */
+    @SuppressWarnings("unchecked")
     public List<WebElement> getCartProducts() {
-        return findAll(cartProducts);
+        return (List<WebElement>) (List<?>) findAll(cartProducts);
     }
 
     /**
@@ -61,24 +62,26 @@ public class CartPage extends PageObject {
     /**
      * Obtiene los nombres de productos en el carrito
      */
+    @SuppressWarnings("unchecked")
     public List<WebElement> getProductNames() {
-        return findAll(productNames);
+        return (List<WebElement>) (List<?>) findAll(productNames);
     }
 
     /**
      * Obtiene los precios de productos en el carrito
      */
+    @SuppressWarnings("unchecked")
     public List<WebElement> getProductPrices() {
-        return findAll(productPrices);
+        return (List<WebElement>) (List<?>) findAll(productPrices);
     }
 
     /**
      * Obtiene el subtotal de la compra
      */
+    @SuppressWarnings("unchecked")
     public String getSubtotal() {
         try {
-            List<WebElement> totals = findAll(subtotalPrice);
-            // El subtotal es generalmente el antepenúltimo
+            List<WebElement> totals = (List<WebElement>) (List<?>) findAll(subtotalPrice);
             return totals.get(totals.size() - 3).getText();
         } catch (Exception e) {
             return "";
@@ -116,7 +119,8 @@ public class CartPage extends PageObject {
     /**
      * Espera un tiempo determinado
      */
-    private void waitABit(long milliseconds) {
+    @Override
+    protected void waitABit(long milliseconds) {
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {

@@ -1,6 +1,7 @@
 package com.sofka.opencart.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
@@ -45,8 +46,9 @@ public class HomePage extends PageObject {
     /**
      * Obtiene la lista de productos disponibles
      */
+    @SuppressWarnings("unchecked")
     public List<WebElement> getAvailableProducts() {
-        return findAll(productLinks);
+        return (List<WebElement>) (List<?>) findAll(productLinks);
     }
 
     /**
@@ -102,7 +104,8 @@ public class HomePage extends PageObject {
     /**
      * Espera un tiempo determinado
      */
-    private void waitABit(long milliseconds) {
+    @Override
+    protected void waitABit(long milliseconds) {
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {
@@ -114,7 +117,7 @@ public class HomePage extends PageObject {
      * Hace scroll hasta un elemento
      */
     private void scrollToElement(WebElement element) {
-        getDriver().executeScript("arguments[0].scrollIntoView(true);", element);
+        ((JavascriptExecutor) getDriver()).executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
     /**

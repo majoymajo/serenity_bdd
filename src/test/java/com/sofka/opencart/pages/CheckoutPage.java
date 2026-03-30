@@ -181,7 +181,8 @@ public class CheckoutPage extends PageObject {
     /**
      * Espera un tiempo determinado
      */
-    private void waitABit(long milliseconds) {
+    @Override
+    protected void waitABit(long milliseconds) {
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {
