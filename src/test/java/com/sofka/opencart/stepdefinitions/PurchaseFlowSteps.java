@@ -4,7 +4,7 @@ import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Y;
-import net.thucydides.core.annotations.Steps;
+import net.serenitybdd.annotations.Steps;
 import com.sofka.opencart.pages.CartPage;
 import com.sofka.opencart.pages.CheckoutPage;
 import com.sofka.opencart.pages.HomePage;
