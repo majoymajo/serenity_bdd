@@ -23,9 +23,12 @@ public class PurchaseFlowTestRunner {
 
     @BeforeClass
     public static void forceOfflineWebDriverConfig() {
-        // Ensure Serenity/Selenium uses a locally available driver and never tries to download one.
-        System.setProperty("wdm.enabled", "false");
-        System.setProperty("wdm.offline", "true");
+        // Ensure Serenity's internal WebDriverManager setup does not attempt any network calls.
+        // (Serenity 3.1.0 invokes WebDriverManager even when a driver path is provided.)
+        System.setProperty("wdm.avoidExternalConnections", "true");
+        System.setProperty("wdm.avoidBrowserDetection", "true");
+        System.setProperty("wdm.avoidResolutionCache", "true");
+        System.setProperty("wdm.avoidFallback", "true");
 
         // Prefer Edge on this Windows environment.
         System.setProperty("webdriver.driver", "edge");
@@ -44,6 +47,8 @@ public class PurchaseFlowTestRunner {
 
         if (Files.exists(cachedEdgeDriver)) {
             System.setProperty("webdriver.edge.driver", cachedEdgeDriver.toAbsolutePath().toString());
+            System.setProperty("wdm.edgeDriverVersion", "146.0.3856.62");
+            System.setProperty("wdm.cachePath", Paths.get(System.getProperty("user.home"), ".cache", "selenium").toString());
         }
     }
 }
