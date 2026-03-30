@@ -100,7 +100,7 @@ public class PurchaseFlowSteps {
 
     @Y("el usuario debe ser redirigido a la página de confirmación")
     public void usuarioDebeSerRedirigidoAConfirmacion() {
-        assertThat(homePage.getCurrentUrl())
+        assertThat(homePage.getPageUrl())
                 .as("La URL debe contener 'checkout'")
                 .contains("checkout");
     }

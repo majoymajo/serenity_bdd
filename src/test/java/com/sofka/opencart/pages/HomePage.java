@@ -16,8 +16,12 @@ public class HomePage extends PageObject {
     private static final By PRODUCT_THUMBS = By.cssSelector(".product-thumb");
     private static final By SUCCESS_ALERT = By.cssSelector(".alert-success");
 
-    public void open() {
+    public void navigateTo() {
         openAt("/");
+    }
+
+    public String getPageUrl() {
+        return getDriver().getCurrentUrl();
     }
 
     public void clickShop() {
