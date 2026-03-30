@@ -9,7 +9,7 @@ Este proyecto contiene pruebas funcionales E2E (End-to-End) automatizadas para v
 ## ✅ REQUISITOS PREVIOS
 
 ### 1. Java Development Kit (JDK)
-- **Versión:** 17 o superior
+- **Versión:** 11 o superior (proyecto configurado para Java 11)
 - **Descargar de:** https://adoptium.net/
 - **Verificar instalación:** `java -version`
 
@@ -24,7 +24,8 @@ Este proyecto contiene pruebas funcionales E2E (End-to-End) automatizadas para v
 
 ### 4. Google Chrome
 - El proyecto utiliza ChromeDriver para controlar el navegador
-- **Versión:** Compatible con Selenium 4.14.0
+- **Versión:** Compatible con Selenium 4.0.0
+- **WebDriverManager:** Descarga automática de ChromeDriver (incluido en pom.xml)
 
 ### 5. IDE Recomendado
 - **IntelliJ IDEA** Community o Ultimate
@@ -72,13 +73,22 @@ mvn clean install
 ```
 
 Esto descargará todas las dependencias definidas en `pom.xml`:
-- **Serenity BDD:** 3.1.0
-- **Selenium WebDriver:** 4.0.0
-- **Cucumber:** 6.x (gestionado por Serenity transitivamente)
+- **Serenity BDD Core:** 3.1.0
+- **Serenity Cucumber:** 3.1.0 (incluye Selenium y Cucumber transitivamente)
+- **Selenium WebDriver:** 4.0.0 (gestionado por Serenity)
+- **Cucumber:** 6.11.0 (gestionado por Serenity transitivamente)
 - **JUnit:** 4.13.2
-- **AssertJ:** 3.24.2
+- **WebDriverManager:** 5.6.0 (descarga automática de ChromeDriver)
 - **Lombok:** 1.18.30
-- **Java:** 17
+- **Java:** 11
+
+#### ⚠️ NOTA IMPORTANTE: Gestión de Dependencias
+Este proyecto sigue la **mejor práctica de Serenity BDD**: 
+- ✅ NO declarar explícitamente Selenium ni Cucumber en pom.xml
+- ✅ Permitir que **serenity-cucumber** gestione todas las versiones transitivas
+- ✅ Esto garantiza compatibilidad y evita conflictos de claspath
+
+Si actualizas manualmente versiones de Selenium o Cucumber, causarás conflictos de tipo en el JVM forked de Surefire.
 
 ### PASO 4: Ejecutar las pruebas
 
@@ -220,31 +230,84 @@ Configuración específica de Serenity:
 
 ## 🛠️ TROUBLESHOOTING (SOLUCIÓN DE PROBLEMAS)
 
+### ❌ "Type [unknown] not present" o "ClassNotFoundException" al ejecutar `mvn test`
+
+**CAUSA:** Conflicto de versiones de dependencias transitivas.   
+**SÍNTOMA:** Compilación exitosa pero fallos en tiempo de ejecución en el proceso forked de Surefire.
+
+**Solución:**
+1. NO declarar explícitamente `selenium-java` o `selenium-chrome-driver` en pom.xml
+2. NO declarar explícitamente `cucumber-java` o `cucumber-junit` versiones incompatibles
+3. Dejar que **serenity-cucumber** maneje todas las versiones transitivas
+4. El pom.xml debe incluir SOLO:
+   - serenity-core
+   - serenity-cucumber
+   - webdrivermanager
+   - junit
+   - lombok
+   - logging (sf4j/log4j)
+
+**Ejemplo correcto:**
+```xml
+<!-- ✅ CORRECTO -->
+<dependency>
+    <groupId>net.serenity-bdd</groupId>
+    <artifactId>serenity-cucumber</artifactId>
+    <version>3.1.0</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- ❌ EVITAR ESTO -->
+<!-- NO agregar manualmente selenium-java, selenium-chrome-driver, cucumber-java -->
+```
+
 ### ❌ "ChromeDriver no encontrado"
-**Solución:** El proyecto usa WebDriverManager que descarga automáticamente. Si persiste, establecer `CHROME_DRIVER_PATH` en variables de entorno.
+**Solución:** El proyecto usa WebDriverManager que descarga automáticamente. Si persiste, verificar:
+```bash
+mvn dependency:tree | findstr webdriver
+```
 
 ### ❌ "Timeout esperando elemento"
-**Solución:** Aumentar `webdriver.timeouts.implicitly.wait` en `serenity.properties`
+**Solución:** Aumentar `webdriver.timeouts.implicitly.wait` en `serenity.properties` (valores en segundos)
 
 ### ❌ "Elemento no interactuable"
 **Solución:** Agregar scroll:
-```javascript
-getDriver().executeScript("arguments[0].scrollIntoView();")
+```java
+getDriver().executeScript("arguments[0].scrollIntoView();", element);
 ```
 
 ### ❌ "Las pruebas se ejecutan en headless y no veo nada"
-**Solución:** En `serenity.properties`, cambiar `chrome.switches=--headless=old` por `chrome.switches=--start-maximized`.
+**Solución:** En `serenity.properties`, cambiar:
+```properties
+# Para headless (CI/CD):
+chrome.switches=--headless=new,--no-sandbox,--disable-dev-shm-usage
+
+# Para modo visible (desarrollo local):
+chrome.switches=--start-maximized
+```
 
 ### ❌ "Los reportes no se generan"
-**Solución:** Ejecutar `mvn verify` (en lugar de solo `mvn test`). Verificar que `target/site/serenity/` exista.
+**Solución:** 
+1. Ejecutar `mvn clean verify` (en lugar de solo `mvn test`)
+2. Verificar que `target/site/serenity/` exista
+3. Revisar el archivo `target/site/serenity/index.html`
 
-### ❌ "Falla el checkout - país/estado no se selecciona"
-**Solución:** Los selectores pueden variar según la versión de OpenCart. Usar Chrome DevTools (F12) para actualizar los selectores CSS/XPath.
+### ❌ "Proyecto en iCloudDrive y Maven falla en clean phase"
+**CAUSA:** iCloud sincronización bloquea archivos impidiendo que Maven borre `target/`
+
+**Solución:** Mover el proyecto a carpeta local (ej: `C:\Projects\` en Windows o `~/projects/` en Mac/Linux)
+```bash
+# Windows
+robocopy "C:\Users\usuario\iCloudDrive\SOFKA\Serenity BDD" "C:\Projects\Serenity-OpenCart" /S /E
+
+# Mac/Linux
+cp -r ~/iCloudDrive/SOFKA/Serenity\ BDD ~/projects/Serenity-OpenCart
+```
 
 ### ❌ "Falta una dependencia o no descarga correctamente"
 **Solución:**
 ```bash
-mv n dependency:purge-local-repository -DreResolve=false
+rm -rf ~/.m2/repository/net/serenity
 mvn clean install -U
 ```
 

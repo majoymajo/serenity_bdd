@@ -230,6 +230,84 @@
 
 **Recomendación:** Usar ambiente de staging limpio
 
+### ⭐ DESAFÍO 6: Conflictos de Dependencias Maven (CRÍTICO)
+
+**Problema descubierto:** Error `Type [unknown] not present` al ejecutar `mvn test`
+
+**Síntomas:**
+```
+org.apache.maven.surefire.booter.SurefireBooterForkException: 
+There was an error in the forked process: Type [unknown] not present
+Tests run: 0, Errors: 0, Failures: 0, Skipped: 0
+BUILD FAILURE
+```
+
+**Causas identificadas:**
+
+1. **Conflicto Selenium (Versión Mismatch)**
+   - Serenity 3.1.0 incluye Selenium 4.0.0
+   - pom.xml declaraba explícitamente selenium-java:4.9.1
+   - Maven resolvía múltiples versiones causando ClassNotFoundException
+
+2. **Conflicto Cucumber (Incompatibilidad Trans)**
+   - serenity-cucumber:3.1.0 incluye cucumber-core:6.11.0
+   - pom.xml declaraba explícitamente cucumber-java:7.14.0 y cucumber-junit:7.14.0
+   - Clase UuidGenerator no existe en 6.11.0 → Error en runtime
+
+**Solución Aplicada:**
+
+```xml
+<!-- ❌ REMOVIDO (causaba conflictos) -->
+<!-- <dependency> selenium-java </dependency> -->
+<!-- <dependency> selenium-chrome-driver </dependency> -->
+<!-- <dependency> cucumber-java </dependency> -->
+<!-- <dependency> cucumber-junit </dependency> -->
+
+<!-- ✅ MANTENER (deja Serenity gestionar transitivs) -->
+<dependency>
+    <groupId>net.serenity-bdd</groupId>
+    <artifactId>serenity-core</artifactId>
+    <version>3.1.0</version>
+    <scope>test</scope>
+</dependency>
+
+<dependency>
+    <groupId>net.serenity-bdd</groupId>
+    <artifactId>serenity-cucumber</artifactId>
+    <version>3.1.0</version>
+    <scope>test</scope>
+</dependency>
+```
+
+**Lección aprendida:** 
+> "Serenity BDD está diseñado para gestionar TODAS las dependencias transitivas de forma compatible. Declarar explícitamente Selenium o Cucumber solo ocasiona conflictos. **La mejor práctica es dejar que Serenity maneje las versiones**."
+
+**Prevención:**
+1. Usar `mvn dependency:tree` para auditar versiones conflictivas
+2. Ejecutar `mvn clean compile test-compile` ANTES de `mvn test`
+3. En CI/CD, validar árbol de dependencias
+4. Documentación del pom.xml explicando qué NO incluir
+
+### ⭐ DESAFÍO 7: Bloqueo de archivos en iCloudDrive
+
+**Problema:** Maven `clean` fallaba en iCloudDrive porque iCloud sincronización bloqueaba `target/`
+
+**Error:**
+```
+[ERROR] Failed to delete C:\Users\usuario\iCloudDrive\SOFKA\Serenity BDD\target
+```
+
+**Solución:**
+```bash
+# Mover proyecto a disco local
+robocopy "C:\Users\usuario\iCloudDrive\SOFKA\Serenity BDD" "C:\Projects\Serenity-OpenCart" /S /E
+
+# O en Mac/Linux:
+cp -r ~/iCloudDrive/SOFKA/Serenity\ BDD ~/projects/Serenity-OpenCart
+```
+
+**Recomendación:** Proyectos Maven deben estar en discos locales NTFS/ext4, no en servicios de sincronización cloud.
+
 ### ⭐ MEJOR PRÁCTICA DESCUBIERTA: Dato de prueba único
 
 Para evitar conflictos con órdenes previas:
