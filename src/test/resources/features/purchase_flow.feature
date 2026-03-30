@@ -4,6 +4,7 @@ Característica: Flujo completo de compra en OpenCart
   Quiero comprar productos en OpenCart
   Para verificar que el flujo de compra funciona correctamente
 
+  @smoke
   Escenario: Compra e2e desde selección de productos hasta confirmación
     Dado que el usuario está en la página de inicio de OpenCart
     Cuando el usuario agrega 2 productos al carrito
