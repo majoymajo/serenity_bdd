@@ -95,6 +95,16 @@
                     <!-- Ensure tests run serially to avoid driver conflicts -->
                     <!-- Increase timeout for test execution -->
                     <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+                    <systemPropertyVariables>
+                        <!-- Force Serenity/Selenium to use the locally cached EdgeDriver (offline-friendly) -->
+                        <webdriver.driver>edge</webdriver.driver>
+                        <webdriver.edge.driver>${user.home}/.cache/selenium/msedgedriver/win64/146.0.3856.62/msedgedriver.exe</webdriver.edge.driver>
+
+                        <!-- Prevent WebDriverManager from attempting online downloads -->
+                        <wdm.enabled>false</wdm.enabled>
+                        <wdm.offline>true</wdm.offline>
+                        <wdm.cachePath>${user.home}/.cache/selenium</wdm.cachePath>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 
